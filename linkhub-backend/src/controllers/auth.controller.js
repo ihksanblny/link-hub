@@ -39,7 +39,15 @@ const login = async (req, res) => {
     }
 };
 
+const getProfile = async (req, res) => {
+    res.status(200).json({
+        message: "User profile retrieved successfully",
+        data: req.user,
+    });
+};
+
 module.exports = {
     register,
     login,
+    getProfile,
 }
