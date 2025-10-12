@@ -22,6 +22,24 @@ const register = async (req, res) => {
 
 };
 
+const login = async (req, res) => {
+    const {email, password} = req.body;
+
+    //validasi input
+    if (!email || !password){
+        return res.status(400).json({message: "Email and password are required"});
+    }
+
+    try {
+        const data = await authService.signInUser(email, password);
+        res.status(200).json({message: "User signed in successfully", data: data});
+    }
+    catch (error){
+        res.status(401).json({message: error.message});
+    }
+};
+
 module.exports = {
     register,
+    login,
 }

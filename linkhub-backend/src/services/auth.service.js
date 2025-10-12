@@ -12,12 +12,24 @@ const registerUser = async (email, password) => {
     if (error) {
         throw new Error(error.message);
     }
-
     //mengembalikan data user yang baru didaftarkan
     return data;
 };
 
+const signInUser = async (email, password) => {
+    const { data, error } = await supabase.auth.signInWithPassword({
+        email: email,
+        password: password,
+    });
+
+    if (error) {
+        throw new Error(error.message);
+    }
+    return data;
+}
+
 module.exports = {
     registerUser,
+    signInUser,
 };
 
