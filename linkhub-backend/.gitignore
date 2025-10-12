@@ -1,0 +1,9 @@
+# Folder dependencies
+node_modules/
+
+# File environment variables (RAHASIA!)
+.env
+
+# Log files
+*.log
+npm-debug.log
