@@ -1,7 +1,8 @@
 const express = require('express');
 const cors = require('cors');
-//mengimpor route auth
+//mengimpor route
 const authRoutes = require('./routes/auth.routes');
+const linkRoutes = require('./routes/link.routes');
 //inisialisasi aplikasi express
 const app = express();
 
@@ -10,9 +11,9 @@ app.use(cors());
 //middleware untuk parsing JSON
 app.use(express.json());
 
-// Memberitahu Express untuk menggunakan authRoutes untuk setiap request
-// yang dimulai dengan /auth
+//menggunakan route
 app.use('/auth', authRoutes);
+app.use('/links', linkRoutes);
 
 app.get('/',(req, res)=>{
     res.json({message: "Welcome to LinkHub API"});
