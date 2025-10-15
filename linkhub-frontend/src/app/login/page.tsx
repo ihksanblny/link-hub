@@ -6,6 +6,8 @@
 
 // Kita import 'useState' dari React untuk mengelola state (data) di dalam komponen.
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/context/AuthContext';
 
 export default function LoginPage() {
   // Kita buat dua 'state' untuk menyimpan nilai dari input email dan password.
@@ -13,6 +15,8 @@ export default function LoginPage() {
   // 'setEmail' adalah fungsi untuk mengubah nilainya.
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const router = useRouter(); // Inisialisasi router
+  const { login } = useAuth(); // Ambil fungsi login dari Context
 
   // Fungsi ini akan dijalankan saat tombol 'Login' ditekan.
   const handleSubmit = async (event: React.FormEvent) => {
@@ -39,8 +43,11 @@ export default function LoginPage() {
       } else {
         // Jika login berhasil, tampilkan pesan sukses dan tokennya.
         // Nanti kita akan simpan token ini, untuk sekarang kita tampilkan saja.
-        alert('Login Berhasil!');
-        console.log('Login success data:', data);
+        const accessToken = data.data.session.access_token
+        login(accessToken);
+
+        // Redirect ke halaman dashboard setelah login sukses
+        router.push('/dashboard');
       }
     } catch (error) {
       console.error('Terjadi kesalahan:', error);
