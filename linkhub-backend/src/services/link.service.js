@@ -85,9 +85,41 @@ const deleteLinkById = async (linkId, userId) => {
     return data;
 };
 
+/**
+ * @param {string} username - Username dari profil publik
+ */
+
+const getPublicProfileWithLinks = async (username) => {
+    console.log(`[Service] Query ke database untuk username: "${username}"`);
+    
+    const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('id, full_name, username') // Ambil kolom yang diperlukan
+        .eq('username', username)
+        .single();
+    
+        if (profileError || !profile) {
+        throw new Error('Profile not found');
+    }
+    
+    //Setelah mendapatkan user Id dari profil, cari semua link milik user tersebut
+    const { data: links, error: linksError } = await supabase
+        .from('links')
+        .select('id, title, url') //Ambil hanya data link yang relavan
+        .eq('user_id', profile.id)
+    
+        if (linksError) {
+        throw new Error (linksError.message);
+    }
+    return { ...profile, links };
+};
+
+
+
 module.exports = {
     createlink,
     getLinksByUserId,
     updateLinkById,
     deleteLinkById,
+    getPublicProfileWithLinks,
 }
