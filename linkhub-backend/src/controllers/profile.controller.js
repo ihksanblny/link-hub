@@ -1,7 +1,7 @@
 const linkService = require('../services/link.service');
 const profileService = require('../services/profile.service.js');
 
-const getPublicProfile = async (req, res) => {
+const getPublicProfile = async (req, res, next) => {
     try {
         const { username } = req.params; // Ambil username dari parameter URL
 
@@ -18,7 +18,7 @@ const getPublicProfile = async (req, res) => {
     }
 };
 
-const updateMyProfile = async (req, res) => {
+const updateMyProfile = async (req, res, next) => {
   // console.log('Menjalankan tes bypass. Jika ini berhasil, masalah ada di pemanggilan service.');
 
   // res.status(200).json({ message: 'Tes bypass berhasil!' });

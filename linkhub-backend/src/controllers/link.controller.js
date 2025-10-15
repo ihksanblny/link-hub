@@ -1,6 +1,6 @@
 const linkService = require('../services/link.service');
 
-const addLink = async (req, res) => {
+const addLink = async (req, res, next) => {
     try {
         const {title, url} = req.body;
         //ID user diambil dari req.user yang sudah diisi oleh middleware protectRoute
@@ -18,7 +18,7 @@ const addLink = async (req, res) => {
     }
 };
 
-const getAllLinks = async (req,res) => {
+const getAllLinks = async (req,res, next) => {
     try {
         const userId = req.user.id;
         const links = await linkService.getLinksByUserId(userId);
@@ -29,7 +29,7 @@ const getAllLinks = async (req,res) => {
     }
 };
 
-const updateLink = async (req, res) => {
+const updateLink = async (req, res, next) => {
     try {
         const { id } = req.params; // Ambil ID link dari parameter URL
         const { title, url } = req.body;
@@ -49,7 +49,7 @@ const updateLink = async (req, res) => {
     
 }
 
-const deleteLink = async (req, res) => {
+const deleteLink = async (req, res, next) => {
     try {
         const { id } = req.params; // Ambil ID link dari parameter URL
         const userId = req.user.id;

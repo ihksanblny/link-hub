@@ -1,6 +1,6 @@
 const authService = require('../services/auth.service');
 
-const register = async (req, res) => {
+const register = async (req, res, next) => {
     //Mengambil email dan password dari body request
     const {email, password} = req.body;
 
@@ -22,7 +22,7 @@ const register = async (req, res) => {
 
 };
 
-const login = async (req, res) => {
+const login = async (req, res, next) => {
     const {email, password} = req.body;
 
     //validasi input

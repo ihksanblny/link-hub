@@ -1,4 +1,5 @@
 // src/app/[username]/page.tsx
+import ProfileLinkButton from "@/components/ui/ProfileLinkButton";
 
 // 1. Definisikan tipe data yang kita harapkan dari API
 interface ProfileData {
@@ -49,28 +50,22 @@ export default async function ProfilePage({ params }: { params: { username: stri
 
   // 5. Tampilan jika profil BERHASIL ditemukan
   return (
-    <div className="flex flex-col items-center min-h-screen bg-gray-900 text-white pt-16 sm:pt-20">
+    <div className="flex flex-col items-center min-h-screen bg-background text-text pt-16 sm:pt-20">
       <div className="w-full max-w-3xl px-4">
         <header className="text-center mb-10">
-          {/* Nanti kita bisa tambahkan foto profil di sini */}
           <h1 className="text-3xl font-bold">{profileData.full_name || `@${profileData.username}`}</h1>
         </header>
 
         <main className="space-y-4">
           {profileData.links.length > 0 ? (
             profileData.links.map((link) => (
-              <a
-                key={link.id}
-                href={link.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="block w-full bg-gray-800 hover:bg-gray-700 p-4 rounded-lg transition-transform transform hover:scale-105 duration-200 font-semibold text-center"
-              >
+              // 3. GUNAKAN KOMPONEN BARU
+              <ProfileLinkButton key={link.id} href={link.url}>
                 {link.title || link.url}
-              </a>
+              </ProfileLinkButton>
             ))
           ) : (
-            <p className="text-center text-gray-400">Pengguna ini belum menambahkan link.</p>
+            <p className="text-center text-secondary">Pengguna ini belum menambahkan link.</p>
           )}
         </main>
       </div>
