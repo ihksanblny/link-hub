@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import AddLinkForm from '@/components/AddLinkForm';
 import EditLinkModal from '@/components/EditLinkModal';
+import UpdateProfileForm from '@/components/UpdateProfileForm';
 
 // FIX #1: Perbarui tipe data title agar bisa menerima null
 interface Link {
@@ -108,7 +109,8 @@ export default function DashboardPage() {
             Logout
           </button>
         </header>
-
+        <UpdateProfileForm />
+        
         <AddLinkForm onLinkAdded={fetchLinks} />
 
         <div className="bg-gray-800 p-6 rounded-lg">
