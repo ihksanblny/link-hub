@@ -4,6 +4,7 @@ const cors = require('cors');
 const authRoutes = require('./routes/auth.routes');
 const linkRoutes = require('./routes/link.routes');
 const profileRoutes = require('./routes/profile.routes');
+const errorHandler = require('./middleware/errorHandler');
 
 //inisialisasi aplikasi express
 const app = express();
@@ -17,6 +18,9 @@ app.use(express.json());
 app.use('/auth', authRoutes);
 app.use('/links', linkRoutes);
 app.use('/profile', profileRoutes);
+
+//middleware untuk menangani error
+app.use(errorHandler);
 
 app.get('/',(req, res)=>{
     res.json({message: "Welcome to LinkHub API"});

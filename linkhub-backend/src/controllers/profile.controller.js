@@ -12,9 +12,9 @@ const getPublicProfile = async (req, res) => {
     } catch (error) {
         // Jika profil tidak ditemukan , service akan melempar error
         if (error.message === 'Profile not found') {
-            return res.status(404).json({message: error.message});
+            return next(error); // Lanjut ke middleware 404
         }
-        res.status(500).json({message: error.message});
+        next(error); // Lanjut ke middleware error global
     }
 };
 
@@ -23,7 +23,7 @@ const updateMyProfile = async (req, res) => {
 
   // res.status(200).json({ message: 'Tes bypass berhasil!' });
   try {
-    
+
     const { username } = req.body;
     const userId = req.user.id; // Diambil dari middleware, jadi ini aman
 
@@ -36,9 +36,9 @@ const updateMyProfile = async (req, res) => {
   } catch (error) {
     // Kirim pesan error yang lebih spesifik jika username sudah ada
     if (error.message === 'Username already taken.') {
-      return res.status(409).json({ message: error.message }); // 409 Conflict
+      next(error); // 409 Conflict
     }
-    res.status(500).json({ message: 'Internal Server Error', error: error.message });
+    next(error); // Lanjut ke middleware error global
   }
 };
 

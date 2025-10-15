@@ -17,7 +17,7 @@ const register = async (req, res) => {
     }
     catch (error) {
         //menangani error dan mengirim respon gagal
-        res.status(400).json({message: error.message});
+        next(error);
     }
 
 };
@@ -27,7 +27,7 @@ const login = async (req, res) => {
 
     //validasi input
     if (!email || !password){
-        return res.status(400).json({message: "Email and password are required"});
+        return next(new Error("Email and password are required"));
     }
 
     try {
@@ -35,7 +35,7 @@ const login = async (req, res) => {
         res.status(200).json({message: "User signed in successfully", data: data});
     }
     catch (error){
-        res.status(401).json({message: error.message});
+        next(error);
     }
 };
 

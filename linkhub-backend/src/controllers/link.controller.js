@@ -14,7 +14,7 @@ const addLink = async (req, res) => {
         return res.status(201).json({message: "Link created successfully", data: newLink});
     }
     catch (error) {
-        res.status(500).json({message: error.message});
+        next(error);
     }
 };
 
@@ -25,7 +25,7 @@ const getAllLinks = async (req,res) => {
         res.status(200).json({message: "Links retrieved successfully", data: links});
     }
     catch (error) {
-        res.status(500).json({message: error.message});
+        next(error);
     }
 };
 
@@ -44,7 +44,7 @@ const updateLink = async (req, res) => {
         res.status(200).json({message: "Link updated successfully", data: updateLink});
     }
     catch (error) {
-        res.status(500).json({message: error.message});
+        next(error);
     }
     
 }
@@ -59,7 +59,7 @@ const deleteLink = async (req, res) => {
         res.status(204).send();
     }
     catch (error) {
-        res.status(500).json({message: error.message});
+        next(error);
     }
 };
 
