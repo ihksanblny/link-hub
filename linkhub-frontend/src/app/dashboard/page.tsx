@@ -7,7 +7,7 @@ import { useEffect, useState, useCallback } from 'react';
 import AddLinkForm from '@/components/AddLinkForm';
 import EditLinkModal from '@/components/EditLinkModal';
 import UpdateProfileForm from '@/components/UpdateProfileForm';
-import { Button } from '@/components/ui/Button';
+import { Button } from '@/components/ui/button';
 import LinkList from '@/components/LinkList'; // <-- Import komponen list baru kita
 
 // (interface Link tetap di sini atau bisa dipindah ke file tipe terpisah)

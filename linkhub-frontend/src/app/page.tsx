@@ -1,32 +1,23 @@
-// src/app/page.tsx
+// src/app/home/page.tsx
 
-async function getBackendMessage() {
-  // Mengambil URL API dari environment variable
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+import Header from "@/components/home/Header"; 
+import HeroSection from "@/components/home/HeroSection"; 
+import BentoGridSection from "@/components/home/BentoGridSection"; 
+import TestimonialSection from "@/components/home/TestimonialSection"; // Import
+import FooterSection from "@/components/home/FooterSection"; // Import
 
-  try {
-    // 'force-dynamic' memastikan data selalu baru diambil dari server
-    const res = await fetch(`${apiUrl}/`, { cache: 'no-store' });
-
-    if (!res.ok) {
-      return "Gagal terhubung ke backend.";
-    }
-
-    const data = await res.json();
-    return data.message;
-  } catch (error) {
-    console.error("Fetch error:", error);
-    return "Gagal terhubung ke backend. Pastikan server backend berjalan.";
-  }
-}
-
-export default async function HomePage() {
-  const message = await getBackendMessage();
-
+export default function HomePage() {
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center p-24">
-      <h1 className="text-4xl font-bold">Koneksi ke Backend</h1>
-      <p className="mt-4 text-lg bg-gray-800 p-4 rounded-lg">{message}</p>
-    </main>
+    // Catatan: Pastikan <body> atau Layout Anda memiliki background-color default gelap (misal: bg-gray-950)
+    <>
+      <Header />
+      <main className="min-h-screen"> 
+        {/* Tambahkan padding di sini agar konten tidak tertutup header fixed */}
+        <HeroSection />
+        <BentoGridSection />
+        <TestimonialSection /> {/* Panggil komponen */}
+      </main>
+      <FooterSection /> {/* Panggil komponen di luar main jika ingin footer menempel di bawah */}
+    </>
   );
 }

@@ -1,7 +1,7 @@
 // src/components/LinkItem.tsx
 'use client';
 
-import { Button } from "@/components/ui/Button"; // Import Button dari Shadcn
+import { Button } from "@/components/ui/button"; // Import Button dari Shadcn
 
 // Definisikan tipe data Link
 interface Link {

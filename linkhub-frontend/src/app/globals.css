@@ -5,57 +5,52 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    /* Warna Dasar untuk Light Theme (mirip gambar 2) */
+    --background: 0 0% 100%; /* Putih terang */
+    --foreground: 222.2 47.4% 11.2%; /* Teks gelap */
+
     --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --muted-foreground: 240 5% 64.9%; /* Abu-abu yang lebih terang dan netral */
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 47.4% 11.2%;
+
+    --card: 0 0% 100%; /* Card juga putih */
+    --card-foreground: 222.2 47.4% 11.2%;
+
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
-    --chart-1: 12 76% 61%;
-    --chart-2: 173 58% 39%;
-    --chart-3: 197 37% 24%;
-    --chart-4: 43 74% 66%;
-    --chart-5: 27 87% 67%;
-    --radius: 0.5rem
-  }
-  .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 62.8% 30.6%;
+    --ring: 222.2 84% 4.9%; /* Tetap biru/gelap untuk fokus */
+
+    --primary: 222.2 47.4% 11.2%; /* Biru yang lebih gelap, untuk tombol utama */
+    --primary-foreground: 210 40% 98%; /* Teks di atas primary */
+
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+
+    --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
-    --chart-1: 220 70% 50%;
-    --chart-2: 160 60% 45%;
-    --chart-3: 30 80% 55%;
-    --chart-4: 280 65% 60%;
-    --chart-5: 340 75% 55%
+
+    --radius: 0.5rem; /* Border radius default */
+
+    /* --- Custom colors for the soft UI gradient --- */
+    --soft-gradient-start: 0 0% 100%; /* Putih */
+    --soft-gradient-end: 330 100% 95%; /* Pink muda */
+    --text-lighter: 215.4 16.3% 60%; /* Teks lebih ringan */
+    /* --- End Custom Colors --- */
+  }
+
+  /* Tema gelap tidak kita pakai untuk desain ini, jadi kita biarkan sama atau hapus */
+  .dark {
+    /* Bisa dihapus atau biarkan sama seperti :root jika kita tidak ingin Dark Mode */
+    --background: 0 0% 100%;
+    --foreground: 222.2 47.4% 11.2%;
+    /* ... Salin semua variabel dari :root di sini juga ... */
+    --card: 0 0% 98%; /* Sedikit lebih abu-abu untuk card */
+    --border: 214.3 31.8% 88.4%;
   }
 }
 
@@ -64,6 +59,62 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground;
+    /* Gunakan warna background baru dan terapkan gradien */
+    @apply bg-[--background] text-foreground;
+    background: linear-gradient(135deg, hsl(var(--soft-gradient-start)) 0%, hsl(var(--soft-gradient-end)) 100%);
+    background-attachment: fixed;
   }
 }
+
+@layer utilities {
+  .animated-gradient {
+    background: linear-gradient(-45deg, #0f172a, #1e293b, #3b82f6, #4f46e5);
+    background-size: 400% 400%;
+    animation: gradient-move 15s ease infinite;
+  }
+  .animated-gradient-text {
+    background: linear-gradient(-45deg, #f87171, #f472b6, #a78bfa, #3b82f6);
+    background-size: 400% 400%;
+    animation: gradient-move 10s ease infinite;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-fill-color: transparent;
+  }
+  @keyframes gradient-move {
+    0% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+    100% {
+      background-position: 0% 50%;
+    }
+  }
+}
+
+@keyframes blob {
+	0% {
+		transform: translate(0px, 0px) scale(1);
+	}
+	33% {
+		transform: translate(30px, -50px) scale(1.1);
+	}
+	66% {
+		transform: translate(-20px, 20px) scale(0.9);
+	}
+	100% {
+		transform: translate(0px, 0px) scale(1);
+	}
+}
+
+.animate-blob {
+	animation: blob 7s infinite;
+}
+
+.animation-delay-2000 {
+	animation-delay: 2s;
+}
+
+
