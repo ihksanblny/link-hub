@@ -90,7 +90,6 @@ const deleteLinkById = async (linkId, userId) => {
  */
 
 const getPublicProfileWithLinks = async (username) => {
-    console.log(`[Service] Query ke database untuk username: "${username}"`);
     
     const { data: profile, error: profileError } = await supabase
         .from('profiles')
