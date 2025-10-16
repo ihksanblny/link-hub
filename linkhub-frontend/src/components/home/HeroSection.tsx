@@ -26,7 +26,7 @@ export default function HeroSection() {
               href="/register"
               className="inline-flex h-12 items-center justify-center rounded-full bg-gray-900 px-8 text-base font-semibold text-white shadow-lg transition-transform duration-200 hover:scale-[1.03] hover:bg-gray-700 border border-white/20"
             >
-              Mulai Proyek Anda Sekarang
+              Mulai LinkHub anda Sekarang
             </Link>
             <Link
               href="#services"

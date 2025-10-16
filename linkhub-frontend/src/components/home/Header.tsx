@@ -48,16 +48,16 @@ export default function Header() {
         {/* Navigasi Utama */}
         <nav className="hidden lg:flex items-center space-x-8 text-sm font-medium text-gray-300">
           <Link href="/" className="hover:text-white transition-colors duration-200">Home</Link>
-          <Link href="#about" className="hover:text-white transition-colors duration-200">About Us</Link>
+          <Link href="#about" className="hover:text-white transition-colors duration-200">View Profile</Link>
           <Link href="#blogs" className="hover:text-white transition-colors duration-200">Blogs</Link>
-          <Link href="#services" className="hover:text-white transition-colors duration-200">Services</Link>
+          <Link href="#services" className="hover:text-white transition-colors duration-200">Features</Link>
           <Link href="#faqs" className="hover:text-white transition-colors duration-200">FAQs</Link>
         </nav>
         
         {/* Tombol CTA */}
         <div className="flex items-center">
           <Link
-            href="#contact" 
+            href="/login" 
             className="inline-flex items-center justify-center h-10 px-6 rounded-full text-sm font-semibold text-white transition-all duration-300 
                        bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-700 hover:to-pink-600 shadow-lg"
           >
