@@ -7,7 +7,6 @@ import { useRouter } from 'next/navigation';
 import LinkList from '@/components/LinkList';
 import EditLinkModal from '@/components/EditLinkModal';
 import AddLinkModal from '@/components/AddLinkModal';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Plus, Eye, MousePointerClick, TrendingUp, TrendingDown, Search, BarChart2, LogOut } from 'lucide-react';
 import type { Link } from '@/types';
@@ -95,22 +94,9 @@ export default function DashboardPage() {
   if (!user) {
     // --- TAMPILAN LOADING MODERN ---
     return (
+      // Gunakan min-h-screen dan bg-gray-950 dari layout
       <main className="flex min-h-screen items-center justify-center bg-gray-950">
-        <div className="flex flex-col items-center space-y-4 p-8 bg-gray-900/80 rounded-xl shadow-2xl border border-white/10 backdrop-blur-md">
-          
-          {/* Logo LinkHub/Branding */}
-          <div className="flex items-center space-x-2 text-white">
-            <LinkIcon className="w-8 h-8 text-green-400 animate-pulse" />
-            <span className="text-xl font-bold">LinkHub.</span>
-          </div>
-
-          {/* Spinner dan Pesan */}
-          <div className="flex items-center space-x-2 text-gray-400">
-            <Loader2 className="w-5 h-5 animate-spin text-purple-400" />
-            <p className="text-sm">Memuat Dashboard...</p>
-          </div>
-          
-        </div>
+        <p className="text-white text-xl font-medium">Loading...</p> 
       </main>
     );
   }
