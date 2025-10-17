@@ -5,52 +5,60 @@
 
 @layer base {
   :root {
-    /* Warna Dasar untuk Light Theme (mirip gambar 2) */
-    --background: 0 0% 100%; /* Putih terang */
-    --foreground: 222.2 47.4% 11.2%; /* Teks gelap */
+    /* --- PALET WARNA BARU "AURORA GLOW" --- */
+    --background: 224 71.4% 4.1%; /* Biru sangat gelap */
+    --foreground: 210 20% 98%;    /* Teks putih gading (lebih lembut) */
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 240 5% 64.9%; /* Abu-abu yang lebih terang dan netral */
+    /* Kartu dibuat sedikit lebih terang untuk kontras */
+    --card: 224 71.4% 5.5%;
+    --card-foreground: 210 20% 98%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 47.4% 11.2%;
+    --popover: 224 71.4% 4.1%;
+    --popover-foreground: 210 20% 98%;
 
-    --card: 0 0% 100%; /* Card juga putih */
-    --card-foreground: 222.2 47.4% 11.2%;
+    /* Aksen utama: Ungu Elektrik yang cerah */
+    --primary: 262.1 83.3% 57.8%;
+    --primary-foreground: 210 20% 98%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%; /* Tetap biru/gelap untuk fokus */
+    --secondary: 224 71.4% 10%;
+    --secondary-foreground: 210 20% 98%;
+    
+    --muted: 224 71.4% 10%;
+    --muted-foreground: 215 20.2% 65.1%;
 
-    --primary: 222.2 47.4% 11.2%; /* Biru yang lebih gelap, untuk tombol utama */
-    --primary-foreground: 210 40% 98%; /* Teks di atas primary */
+    --accent: 224 71.4% 10%;
+    --accent-foreground: 210 20% 98%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 20% 98%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
-
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-
-    --radius: 0.5rem; /* Border radius default */
-
-    /* --- Custom colors for the soft UI gradient --- */
-    --soft-gradient-start: 0 0% 100%; /* Putih */
-    --soft-gradient-end: 330 100% 95%; /* Pink muda */
-    --text-lighter: 215.4 16.3% 60%; /* Teks lebih ringan */
-    /* --- End Custom Colors --- */
+    --border: 224 71.4% 10%; /* Border sedikit lebih terlihat */
+    --input: 224 71.4% 10%;
+    --ring: 262.1 83.3% 57.8%; /* Cincin fokus mengikuti warna primary */
+    
+    --radius: 0.75rem;
   }
 
-  /* Tema gelap tidak kita pakai untuk desain ini, jadi kita biarkan sama atau hapus */
   .dark {
-    /* Bisa dihapus atau biarkan sama seperti :root jika kita tidak ingin Dark Mode */
-    --background: 0 0% 100%;
-    --foreground: 222.2 47.4% 11.2%;
-    /* ... Salin semua variabel dari :root di sini juga ... */
-    --card: 0 0% 98%; /* Sedikit lebih abu-abu untuk card */
-    --border: 214.3 31.8% 88.4%;
+    /* Untuk mode gelap, kita gunakan variabel yang sama persis */
+    --background: 224 71.4% 4.1%;
+    --foreground: 210 20% 98%;
+    /* ... (semua variabel lain dari :root disalin ke sini) ... */
+    --card: 224 71.4% 5.5%;
+    --card-foreground: 210 20% 98%;
+    --primary: 262.1 83.3% 57.8%;
+    --primary-foreground: 210 20% 98%;
+    --secondary: 224 71.4% 10%;
+    --secondary-foreground: 210 20% 98%;
+    --muted: 224 71.4% 10%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 224 71.4% 10%;
+    --accent-foreground: 210 20% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 224 71.4% 10%;
+    --input: 224 71.4% 10%;
+    --ring: 262.1 83.3% 57.8%;
   }
 }
 

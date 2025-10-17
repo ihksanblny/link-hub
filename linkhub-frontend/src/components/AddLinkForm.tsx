@@ -1,93 +1,90 @@
+// src/components/AddLinkForm.tsx
 'use client';
 
-import { useState } from "react";
-import { useAuth } from "@/context/AuthContext";
+import { useState } from 'react';
+import { useAuth } from '@/context/AuthContext';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { PlusCircle } from 'lucide-react';
 
-//Definisikan Props
 interface AddLinkFormProps {
-    onLinkAdded: () => void;
+  onLinkAdded: () => void;
 }
 
-export default function AddLinkForm ({onLinkAdded}: AddLinkFormProps) {
-    //State untuk menyimpan nilai input
-    const [title, setTitle] = useState('');
-    const [url, setUrl] = useState('');
-    const [isLoading, setIsLoading] = useState(false);
-    const { token } = useAuth(); // Ambil token untuk otentikasi
+export default function AddLinkForm({ onLinkAdded }: AddLinkFormProps) {
+  const [title, setTitle] = useState('');
+  const [url, setUrl] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const { token } = useAuth();
 
-    //Fungsi untuk menangani submit form
-    const handleSubmit = async (event: React.FormEvent) => {
-        event.preventDefault();
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!url || !token) return;
 
-        if (!url || !title) return;
+    setIsLoading(true);
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
-        setIsLoading(true);
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+    try {
+      const response = await fetch(`${apiUrl}/links`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({ title, url }),
+      });
+      if (!response.ok) throw new Error('Failed to add link');
 
-        try {
-            const response = await fetch (`${apiUrl}/links`, {
-                method : 'POST',
-                headers : {
-                    'Content-Type' : 'application/json',
-                    'Authorization' : `Bearer ${token}`
-                },
-                body : JSON.stringify({ title, url }),
-            });
+      setTitle('');
+      setUrl('');
+      onLinkAdded();
+    } catch (error) {
+      console.error(error);
+      alert('An error occurred while adding the link.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-            if (!response.ok) {
-                throw new Error('Failed to add link');
-            }
-
-            //Jika berhasil
-            setTitle(''); //Kosongkan form
-            setUrl('');
-            onLinkAdded(); //Panggil fungsi dari induk untuk refresh daftar link
-        }
-        catch (error) {
-            console.error(error);
-            alert('Terjadi kesalahan saat menambahkan link.');
-        }
-        finally {
-            setIsLoading(false);
-        }
-    };
-
-    // 4. Tampilan JSX untuk form
-    return (
-        <div className="bg-gray-800 p-6 rounded-lg mb-8">
-        <h2 className="text-xl font-semibold mb-4">Tambah Link Baru</h2>
-        <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-            <label htmlFor="title" className="block mb-2 text-sm font-medium">Judul</label>
-            <input
-                type="text"
-                id="title"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                placeholder="Contoh: Portfolio Saya"
-                className="bg-gray-700 border border-gray-600 text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 transition-colors"
-            />
-            </div>
-            <div>
-            <label htmlFor="url" className="block mb-2 text-sm font-medium">URL</label>
-            <input
-                type="url"
-                id="url"
-                value={url}
-                onChange={(e) => setUrl(e.target.value)}
-                placeholder="https://..."
-                required
-                className="bg-gray-700 border border-gray-600 text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 transition-colors"
-            />
-            </div>
-            <button
-            type="submit"
-            disabled={isLoading}
-            className="w-full text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-800 font-medium rounded-lg text-sm px-5 py-2.5 text-center transition-colors duration-200 disabled:bg-gray-500"
-            >
-            {isLoading ? 'Menyimpan...' : 'Simpan Link'}
-            </button>
-        </form>
+  return (
+    // Gunakan Card dari Shadcn dengan style "glassmorphism"
+    <Card className="bg-black/20 backdrop-blur-lg border border-white/10 shadow-lg">
+      <CardHeader className="flex flex-row items-center gap-4">
+        <PlusCircle className="w-8 h-8 text-primary flex-shrink-0" />
+        <div>
+          <CardTitle>Tambah Link Baru</CardTitle>
+          <CardDescription>Masukkan detail link yang akan ditampilkan.</CardDescription>
         </div>
-    );
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="title">Judul</Label>
+            <Input
+              id="title"
+              value={title}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setTitle(e.target.value)}
+              placeholder="Contoh: Portfolio Saya"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="url">URL</Label>
+            <Input
+              id="url"
+              type="url"
+              value={url}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setUrl(e.target.value)}
+              placeholder="https://..."
+              required
+            />
+          </div>
+          <Button type="submit" disabled={isLoading} className="w-full font-bold">
+            {isLoading ? 'Menyimpan...' : 'Tambah Link'}
+          </Button>
+        </form>
+      </CardContent>
+    </Card>
+  );
 }

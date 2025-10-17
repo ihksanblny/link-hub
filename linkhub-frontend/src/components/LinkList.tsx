@@ -1,13 +1,9 @@
 // src/components/LinkList.tsx
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import LinkItem from "./LinkItem"; // Import komponen yang baru kita buat
 
 // (Salin-tempel interface Link di sini atau import dari file lain)
-interface Link {
-  id: number;
-  title: string | null;
-  url: string;
-  created_at: string;
-}
+import { Link } from "@/types";
 
 interface LinkListProps {
   links: Link[];
@@ -18,24 +14,25 @@ interface LinkListProps {
 
 export default function LinkList({ links, isLoading, onEdit, onDelete }: LinkListProps) {
   return (
-    <div className="bg-card p-6 rounded-lg">
-      <h2 className="text-xl font-semibold mb-4 text-text">Link Anda</h2>
-      {isLoading ? (
-        <p className="text-text-secondary">Memuat data link...</p>
-      ) : links.length > 0 ? (
-        <ul className="space-y-4">
-          {links.map((link) => (
-            <LinkItem
-              key={link.id}
-              link={link}
-              onEdit={onEdit}
-              onDelete={onDelete}
-            />
-          ))}
-        </ul>
-      ) : (
-        <p className="text-text-secondary">Anda belum memiliki link. Silakan buat satu!</p>
-      )}
-    </div>
+    <Card className="bg-black/20 backdrop-blur-lg border border-white/10 shadow-lg">
+      <CardHeader>
+        <CardTitle>Links</CardTitle>
+      </CardHeader>
+      <CardContent>
+        {isLoading ? ( <p className="text-muted-foreground">Memuat...</p> ) : 
+         links.length > 0 ? (
+          <ul className="space-y-3">
+            {links.map((link) => (
+              <LinkItem
+                key={link.id}
+                link={link}
+                onEdit={onEdit}
+                onDelete={onDelete}
+              />
+            ))}
+          </ul>
+        ) : ( <p className="text-muted-foreground">Mulai dengan menambahkan link pertama Anda.</p> )}
+      </CardContent>
+    </Card>
   );
 }

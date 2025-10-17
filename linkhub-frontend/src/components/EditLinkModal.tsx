@@ -3,15 +3,12 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import type { Link } from '@/types';
 
-// Definisikan tipe data Link
-interface Link {
-  id: number;
-  title: string | null;
-  url: string;
-}
-
-// Definisikan props yang akan diterima komponen ini
 interface EditLinkModalProps {
   link: Link | null;
   onClose: () => void;
@@ -19,13 +16,16 @@ interface EditLinkModalProps {
 }
 
 export default function EditLinkModal({ link, onClose, onLinkUpdated }: EditLinkModalProps) {
+  // Jangan render apa-apa jika tidak ada link yang diedit
   if (!link) return null;
 
+  // State untuk menyimpan perubahan pada input form
   const [title, setTitle] = useState(link.title || '');
   const [url, setUrl] = useState(link.url);
   const [isLoading, setIsLoading] = useState(false);
   const { token } = useAuth();
 
+  // Fungsi untuk mengirim perubahan ke backend
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     setIsLoading(true);
@@ -45,8 +45,8 @@ export default function EditLinkModal({ link, onClose, onLinkUpdated }: EditLink
         throw new Error('Gagal memperbarui link');
       }
 
-      onLinkUpdated(); // Beritahu induk bahwa update berhasil
-      onClose(); // Tutup modal
+      // Beritahu induk (DashboardPage) bahwa update berhasil
+      onLinkUpdated();
 
     } catch (error) {
       console.error(error);
@@ -57,49 +57,40 @@ export default function EditLinkModal({ link, onClose, onLinkUpdated }: EditLink
   };
 
   return (
-    // Latar belakang gelap semi-transparan
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-      <div className="bg-gray-800 p-8 rounded-lg shadow-lg w-full max-w-md">
-        <h2 className="text-xl font-semibold mb-4">Edit Link</h2>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label htmlFor="edit-title" className="block mb-2 text-sm font-medium">Judul</label>
-            <input
-              type="text"
-              id="edit-title"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              className="bg-gray-700 border border-gray-600 text-white text-sm rounded-lg block w-full p-2.5"
-            />
-          </div>
-          <div>
-            <label htmlFor="edit-url" className="block mb-2 text-sm font-medium">URL</label>
-            <input
-              type="url"
-              id="edit-url"
-              value={url}
-              onChange={(e) => setUrl(e.target.value)}
-              required
-              className="bg-gray-700 border border-gray-600 text-white text-sm rounded-lg block w-full p-2.5"
-            />
-          </div>
-          <div className="flex justify-end gap-4 pt-4">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white font-medium rounded-lg"
-            >
-              Batal
-            </button>
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg disabled:bg-gray-500"
-            >
-              {isLoading ? 'Menyimpan...' : 'Simpan Perubahan'}
-            </button>
-          </div>
-        </form>
+    // Latar belakang gelap semi-transparan untuk seluruh layar
+    <div 
+      className="fixed inset-0 bg-black/60 backdrop-blur-sm flex justify-center items-center z-50 p-4"
+      onClick={onClose} // Menutup modal saat klik di luar area
+    >
+      <div 
+        className="w-full max-w-md"
+        onClick={(e) => e.stopPropagation()} // Mencegah klik di dalam modal ikut menutup
+      >
+        <Card className="bg-card/80 backdrop-blur-xl border-white/10 shadow-2xl">
+          <CardHeader>
+            <CardTitle>Edit Link</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="edit-title">Judul</Label>
+                <Input id="edit-title" value={title} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setTitle(e.target.value)} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-url">URL</Label>
+                <Input id="edit-url" type="url" value={url} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setUrl(e.target.value)} required />
+              </div>
+              <div className="flex justify-end gap-4 pt-4">
+                <Button type="button" variant="ghost" onClick={onClose}>
+                  Batal
+                </Button>
+                <Button type="submit" disabled={isLoading}>
+                  {isLoading ? 'Menyimpan...' : 'Simpan Perubahan'}
+                </Button>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
