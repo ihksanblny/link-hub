@@ -76,13 +76,23 @@ const deleteLinkById = async (linkId, userId) => {
         .delete() // Menghapus data
         .eq('id', linkId) // Targetkan berdasarkan ID link
         .eq('user_id', userId) // Pastikan hanya bisa menghapus link milik user tersebut
-        .select()
-        .single();
-    
+        // Hapus .select() dan .single() untuk hasil yang paling aman
+        // Jika Anda perlu tahu data apa yang dihapus, hapus HANYA .single()
+        .select(); // Kembalikan array (mungkin kosong atau berisi 1 item)
+        // .single(); <--- DIHAPUS
+
     if (error) {
         throw new Error(error.message);
     }
-    return data;
+    
+    // Periksa apakah ada data yang benar-benar dihapus (opsional)
+    if (!data || data.length === 0) {
+        // Ini berarti link tidak ditemukan atau user_id tidak cocok
+        throw new Error('Link not found or unauthorized.');
+    }
+    
+    // Kembalikan data[0] atau hanya true/status sukses
+    return data[0]; 
 };
 
 /**
