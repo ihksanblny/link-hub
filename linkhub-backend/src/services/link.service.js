@@ -52,16 +52,24 @@ const getLinksByUserId = async (userId) => {
 const updateLinkById = async (linkId, userId, newData) => {
     const { data, error } = await supabase
         .from('links')
-        .update(newData) // Data baru untuk diupdate
-        .eq('id', linkId) // Targetkan berdasarkan ID link
-        .eq('user_id', userId) // Pastikan hanya bisa mengupdate link milik user tersebut
-        .select() // Mengembalikan data yang sudah diupdate
-        .single(); // Hasilnya berupa objek, bukan array
+        .update(newData) 
+        .eq('id', linkId) 
+        .eq('user_id', userId) 
+        .select(); // HAPUS .single()
     
     if (error) {
         throw new Error(error.message);
     }
-    return data;
+    
+    // Pemeriksaan KRUSIAL: Pastikan satu baris dikembalikan
+    if (!data || data.length === 0) {
+        // Ini berarti link tidak ditemukan atau user_id tidak cocok (Unauthorized/Not Found)
+        // Kita lempar error untuk ditangkap di controller (biasanya mengembalikan 404/403)
+        throw new Error('Link not found or unauthorized to update.');
+    }
+
+    // Karena kita tidak menggunakan .single(), data adalah array. Kita kembalikan elemen pertama.
+    return data[0]; 
 };
 
 /**

@@ -77,12 +77,12 @@ export default function DashboardPage() {
         <main className="flex min-h-screen items-center justify-center bg-gray-950">
             <div className="flex flex-col items-center space-y-4 p-8 bg-gray-900/80 rounded-xl shadow-2xl border border-white/10 backdrop-blur-md">
                 <div className="flex items-center space-x-2 text-white">
-                    <span className="text-xl font-bold">LinkHub.</span>
+                    <span className="text-xl font-bold">Dashboard.</span>
                 </div>
 
                 <div className="flex items-center space-x-2 text-gray-400">
                     <Loader2 className="w-5 h-5 animate-spin text-purple-400" />
-                    <p className="text-sm">Authenticating...</p>
+                    <p className="text-sm">Loading...</p>
                 </div>
             </div>
         </main>

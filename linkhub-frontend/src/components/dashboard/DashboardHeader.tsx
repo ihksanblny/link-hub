@@ -23,13 +23,13 @@ interface DashboardHeaderProps {
 }
 
 // 2. Terima props tersebut di parameter fungsi
-export default function DashboardHeader({ onAddClick, onLogout, userEmail }: DashboardHeaderProps) {
+export default function DashboardHeader({ onAddClick, onLogout }: DashboardHeaderProps) {
   const { user } = useAuth();
 
   return (
     <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background/80 px-4 backdrop-blur-sm sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
       <Link href="/" className="font-bold text-xl tracking-wider mr-4">
-        LinkHub.
+        Dashboard.
       </Link>
       
       <div className="relative ml-auto flex-1 md:grow-0">
