@@ -23,7 +23,7 @@ interface DashboardHeaderProps {
 }
 
 // 2. Terima props tersebut di parameter fungsi
-export default function DashboardHeader({ onAddClick, onLogout }: DashboardHeaderProps) {
+export default function DashboardHeader({ onAddClick, onLogout, userEmail }: DashboardHeaderProps) {
   const { user } = useAuth();
 
   return (

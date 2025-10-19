@@ -1,7 +1,7 @@
 // src/app/dashboard/page.tsx
 'use client';
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
 import LinkList from '@/components/LinkList';
@@ -11,10 +11,11 @@ import DashboardHeader from '@/components/dashboard/DashboardHeader';
 import LivePreview from '@/components/dashboard/LivePreview'; // <-- Import komponen baru
 import type { Link } from '@/types';
 import StatCard from '@/components/dashboard/StatCard'; // <-- IMPORT BARU
-import { Eye, MousePointerClick, TrendingUp } from 'lucide-react'; // <-- IMPORT IKON BARU
+import { Eye, MousePointerClick, TrendingUp, Loader2 } from 'lucide-react'; // <-- IMPORT IKON BARU
 
 export default function DashboardPage() {
-  const { user, token, logout } = useAuth();
+  // Panggil isAuthLoading di sini
+  const { user, token, logout, isAuthLoading} = useAuth();
   const router = useRouter();
   const [links, setLinks] = useState<Link[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -23,83 +24,92 @@ export default function DashboardPage() {
   const [editingLink, setEditingLink] = useState<Link | null>(null);
 
   const fetchLinks = useCallback(async () => {
-    // ... (Logika fetchLinks)
     if (!token) return;
     setIsLoading(true);
     const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+    
     try {
-      const response = await fetch(`${apiUrl}/links`, {
-        headers: { 'Authorization': `Bearer ${token}` },
-      });
-      if (!response.ok) throw new Error('Failed to fetch links');
-      const data = await response.json();
-      setLinks(data.data);
+        const response = await fetch(`${apiUrl}/links`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        // Hati-hati: Jika backend merespons 401 karena token expired, kita harus logout
+        if (response.status === 401) {
+            logout();
+            return;
+        }
+
+        if (!response.ok) throw new Error("Gagal mengambil link.");
+
+        const data = await response.json();
+        setLinks(data.data || []);
     } catch (error) {
-      console.error('Error fetching links:', error);
+        console.error("Fetch links error:", error);
+        setLinks([]);
     } finally {
-      setIsLoading(false);
+        setIsLoading(false);
     }
-  }, [token]);
+  }, [token, logout]); // Tambahkan logout sebagai dependency
 
-  const totalClicks = links.reduce((sum, link)=> sum + link.clicks, 0);
-
+  // ------------------------------------------------------------------
+  // --- FETCH DATA HANYA JIKA AUTHENTIKASI BERHASIL ---
+  // ------------------------------------------------------------------
   useEffect(() => {
-    if (!token) {
-      router.push('/login');
-    } else {
-      fetchLinks();
+    // Jalankan fetchLinks HANYA jika token dan user sudah diinisialisasi
+    if (token && user) {
+        fetchLinks();
     }
-  }, [token, router, fetchLinks]);
+  }, [token, user, fetchLinks]); // user sebagai dependency memastikan state-nya stabil
+  
+  // Hitung totalClicks secara efisien
+  const totalClicks = useMemo(() => {
+    return links.reduce((sum, link) => sum + (link.clicks || 0), 0);
+  }, [links]);
 
-  const handleDelete = async (linkId: number) => {
-    if (!confirm('Are you sure you want to delete this link?')) return;
-    // ... (Logika delete)
-    if (!token) return;
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-    try {
-      const response = await fetch(`${apiUrl}/links/${linkId}`, {
-        method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` },
-      });
-      if (!response.ok) throw new Error('Failed to delete link.');
-      fetchLinks(); 
-    } catch (error) {
-      console.error(error);
-      alert('An error occurred while deleting the link.');
-    }
-  };
 
-  const handleOpenEditModal = (link: Link) => {
-    setEditingLink(link);
-    setIsEditModalOpen(true);
-  };
+  // ------------------------------------------------------------------
+  // --- KRUSIAL: LOGIC PENANGANAN LOADING DAN REDIRECT ---
+  // ------------------------------------------------------------------
 
-  const handleCloseEditModal = () => {
-    setIsEditModalOpen(false);
-    setEditingLink(null);
-  };
-
-  const handleLogout = () => {
-    logout();
-    router.push('/login');
-  };
-
-  if (!user) {
-    // --- TAMPILAN LOADING MODERN ---
+  // 1. BLOKIR SEMUA RENDER SAAT CONTEXT SEDANG MEMUAT
+  if (isAuthLoading) {
     return (
-      // Gunakan min-h-screen dan bg-gray-950 dari layout
-      <main className="flex min-h-screen items-center justify-center bg-gray-950">
-        <p className="text-white text-xl font-medium">Loading...</p> 
-      </main>
+        <main className="flex min-h-screen items-center justify-center bg-gray-950">
+            <div className="flex flex-col items-center space-y-4 p-8 bg-gray-900/80 rounded-xl shadow-2xl border border-white/10 backdrop-blur-md">
+                <div className="flex items-center space-x-2 text-white">
+                    <span className="text-xl font-bold">LinkHub.</span>
+                </div>
+
+                <div className="flex items-center space-x-2 text-gray-400">
+                    <Loader2 className="w-5 h-5 animate-spin text-purple-400" />
+                    <p className="text-sm">Authenticating...</p>
+                </div>
+            </div>
+        </main>
     );
   }
+
+  // 2. REDIRECT JIKA USER TIDAK ADA (LOADING SUDAH SELESAI)
+  if (!user) {
+    console.log("DASHBOARD REDIRECT: Auth finished, user is null. Redirecting to /login.");
+    router.push('/login');
+    return null; // Penting untuk menghentikan proses render
+  }
+  
+  
+  // --- Handler functions (asumsi Anda memiliki ini) ---
+  const handleOpenAddModal = () => setIsAddModalOpen(true);
+  const handleOpenEditModal = (link: Link) => { setEditingLink(link); setIsEditModalOpen(true); };
+  const handleCloseEditModal = () => { setEditingLink(null); setIsEditModalOpen(false); fetchLinks(); };
+  const handleDelete = () => { /* Logika delete */ };
+
 
   return (
     <>
     <div className="flex min-h-screen w-full flex-col">
       <DashboardHeader 
         onAddClick={() => setIsAddModalOpen(true)}
-        onLogout={handleLogout}
+        onLogout={logout}
       />
       <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8">
         

@@ -162,8 +162,6 @@ const trackClickAndGetUrl = async (shortCode) => {
   return url; 
 };
 
-
-
 module.exports = {
     createlink,
     getLinksByUserId,
