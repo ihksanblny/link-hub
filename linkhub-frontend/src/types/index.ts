@@ -5,4 +5,6 @@ export interface Link {
   title: string | null;
   url: string;
   created_at: string;
+  clicks: number;
+  short_code: string;
 }

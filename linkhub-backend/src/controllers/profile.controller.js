@@ -1,4 +1,4 @@
-const linkService = require('../services/link.service');
+const linkService = require('../services/link.service.js');
 const profileService = require('../services/profile.service.js');
 
 const getPublicProfile = async (req, res, next) => {

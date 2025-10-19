@@ -1,5 +1,5 @@
-const { link } = require('../app');
 const supabase = require('../services/supabase.service');
+const { nanoid } = require('nanoid');
 
 /**
  * Membuat link baru di database
@@ -7,21 +7,21 @@ const supabase = require('../services/supabase.service');
  */
 
 const createlink = async (linkData) => {
-    const { data, error } = await supabase
-        .from('links')
-        .insert({
-            title: linkData.title,
-            url: linkData.url,
-            user_id: linkData.userId,
-        })
-        .select() // .select() digunakan untuk mengembalikan data yang baru dibuat
-        .single() // .single() agar hasilnya berupa objek, bukan array
+  const shortCode = nanoid(8); // Buat kode acak 8 karakter
+  const { data, error } = await supabase
+    .from('links')
+    .insert({
+      title: linkData.title,
+      url: linkData.url,
+      user_id: linkData.userId,
+      short_code: shortCode, // Simpan kode unik
+      clicks: 0,
+    })
+    .select()
+    .single();
 
-    if (error) {
-        throw new Error(error.message);
-    }
-    
-    return data;
+  if (error) throw new Error(error.message);
+  return data;
 };
 
 /**
@@ -32,7 +32,7 @@ const createlink = async (linkData) => {
 const getLinksByUserId = async (userId) => {
     const { data, error } = await supabase
         .from('links')
-        .select('*') // Mengambil semua kolom
+        .select('*, clicks, short_code') // Ambil semua kolom termasuk clicks dan short_code
         .eq('user_id', userId); // Filter berdasarkan user_id
 
     if (error) {
@@ -104,13 +104,52 @@ const getPublicProfileWithLinks = async (username) => {
     //Setelah mendapatkan user Id dari profil, cari semua link milik user tersebut
     const { data: links, error: linksError } = await supabase
         .from('links')
-        .select('id, title, url') //Ambil hanya data link yang relavan
+        .select('id, title, url, clicks, short_code') //Ambil hanya data link yang relavan
         .eq('user_id', profile.id)
     
         if (linksError) {
         throw new Error (linksError.message);
     }
     return { ...profile, links };
+};
+
+const trackClickAndGetUrl = async (shortCode) => {
+  console.log(`[Service] Mencari di DB untuk shortCode: "${shortCode}"`);
+
+  // 1. Cari link berdasarkan kode uniknya
+  const { data: linkData, error } = await supabase
+    .from('links')
+    .select('id, url')
+    .eq('short_code', shortCode)
+    .single();
+
+  if (error || !linkData) {
+    // Jika tidak ditemukan, lempar error yang akan ditangkap di controller
+    throw new Error('Link not found'); 
+  }
+
+  // 2. ISOLASI LOGIKA TRACKING CLICK DENGAN TRY/CATCH
+  try {
+    // Panggilan RPC Anda yang mungkin gagal karena nama fungsi/parameter
+    const { error: rpcError } = await supabase.rpc('increment_clicks', { link_id: linkData.id });
+    
+    if (rpcError) {
+      // PENTING: Log error tapi JANGAN melempar error utama
+      console.error("[Service] WARNING: Gagal mengincrement click (RPC Error):", rpcError.message);
+    }
+
+  } catch (rpcError) {
+      console.error("[Service] WARNING: Error saat memanggil RPC:", rpcError.message);
+  }
+  
+  // 3. Ambil URL dan tambahkan protocol jika hilang
+  let url = linkData.url;
+  
+  if (!url.startsWith('http://') && !url.startsWith('https://')) {
+      url = `http://${url}`;
+  }
+
+  return url; 
 };
 
 
@@ -121,4 +160,5 @@ module.exports = {
     updateLinkById,
     deleteLinkById,
     getPublicProfileWithLinks,
+    trackClickAndGetUrl,
 }

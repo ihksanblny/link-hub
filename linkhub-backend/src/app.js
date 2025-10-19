@@ -5,6 +5,7 @@ const authRoutes = require('./routes/auth.routes');
 const linkRoutes = require('./routes/link.routes');
 const profileRoutes = require('./routes/profile.routes');
 const errorHandler = require('./middleware/errorHandler');
+const redirectRoutes = require('./routes/redirect.routes');
 
 //inisialisasi aplikasi express
 const app = express();
@@ -25,6 +26,8 @@ app.use(errorHandler);
 app.get('/',(req, res)=>{
     res.json({message: "Welcome to LinkHub API"});
 });
+
+app.use('/', redirectRoutes);
 
 //Mengekspor app agar bisa digunakan di file server.js
 module.exports = app;

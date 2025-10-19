@@ -41,6 +41,8 @@ export default function DashboardPage() {
     }
   }, [token]);
 
+  const totalClicks = links.reduce((sum, link)=> sum + link.clicks, 0);
+
   useEffect(() => {
     if (!token) {
       router.push('/login');
@@ -103,9 +105,9 @@ export default function DashboardPage() {
         
         {/* --- 2. TAMBAHKAN BAGIAN KARTU STATISTIK DI SINI --- */}
         <div className="grid gap-4 md:grid-cols-3">
-          <StatCard title="Total Views" value="2,389" icon={<Eye className="h-4 w-4 text-muted-foreground" />} />
-          <StatCard title="Total Clicks" value="1,745" icon={<MousePointerClick className="h-4 w-4 text-muted-foreground" />} />
-          <StatCard title="CTR" value="73.2%" icon={<TrendingUp className="h-4 w-4 text-muted-foreground" />} />
+          <StatCard title="Total Views" value="-" icon={<Eye className="h-4 w-4 text-muted-foreground" />} />
+          <StatCard title="Total Clicks" value={totalClicks.toLocaleString('id-ID')} icon={<MousePointerClick className="h-4 w-4 text-muted-foreground" />} />
+          <StatCard title="Total Links" value={links.length.toString()} icon={<TrendingUp className="h-4 w-4 text-muted-foreground" />} />
         </div>
         {/* ---------------------------------------------------- */}
         
