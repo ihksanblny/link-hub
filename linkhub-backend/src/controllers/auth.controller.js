@@ -2,18 +2,26 @@ const authService = require('../services/auth.service');
 
 const register = async (req, res, next) => {
     //Mengambil email dan password dari body request
-    const {email, password} = req.body;
+    const {email, password, username} = req.body;
 
     //validasi sederhana
-    if (!email || !password){
-        return res.status(400).json({message: "Email and password are required"});
+    if (!email || !password || !username) {
+        return res.status(400).json({message: "Email, password, and username are required"});
     }
 
     try {
         //Memanggil service untuk mendaftarkan user baru
-        const data = await authService.registerUser(email, password);
-        //mengirim respon sukses
-        res.status(201).json({message: "User registered successfully", data: data});
+        // Asumsi: Service mengembalikan { user, session }
+        const result = await authService.registerUser(email, password, username); 
+
+        return res.status(201).json({
+            message: "User registered successfully.",
+            data: { 
+                // Kirim properti session dan user yang diambil dari hasil service
+                session: result.session, 
+                user: result.user 
+            }
+        });
     }
     catch (error) {
         //menangani error dan mengirim respon gagal

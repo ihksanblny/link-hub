@@ -13,7 +13,7 @@ const registerUser = async (email, password) => {
         throw new Error(error.message);
     }
     //mengembalikan data user yang baru didaftarkan
-    return data;
+    return { user: data.user, session: data.session };
 };
 
 const signInUser = async (email, password) => {
