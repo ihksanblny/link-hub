@@ -170,6 +170,107 @@ const trackClickAndGetUrl = async (shortCode) => {
   return url; 
 };
 
+/**
+ * Mengupdate detail profil (username/full_name) di tabel profiles
+ * @param {string} userId - ID user yang sedang login (auth.uid())
+ * @param {object} newData - Data baru untuk diupdate (username, full_name)
+ */
+const updateProfileDetails = async (userId, newData) => {
+    // 1. Validasi Username agar tidak kosong
+    if (newData.username && newData.username.trim() === '') {
+        throw new Error("Username cannot be empty.");
+    }
+    
+    // 2. Cek apakah username sudah digunakan oleh orang lain
+    if (newData.username) {
+        const { count, error: countError } = await supabase
+            .from('profiles')
+            .select('id', { count: 'exact' })
+            .eq('username', newData.username)
+            .neq('id', userId); // Kecuali user yang sedang login
+            
+        if (countError) throw new Error(countError.message);
+        if (count > 0) {
+            throw new Error('Username sudah digunakan oleh user lain.');
+        }
+    }
+    
+    // 3. Lakukan Update
+    const { data, error } = await supabase
+        .from('profiles')
+        .update(newData) 
+        .eq('id', userId) 
+        .select()
+        .single();
+    
+    if (error) {
+        throw new Error(error.message);
+    }
+    
+    // Jika tidak ada baris yang diupdate (misal: user tidak ada), throw error
+    if (!data) {
+        throw new Error('Profile not found or no changes made.');
+    }
+    
+    return data;
+};
+
+/**
+ * Mengambil detail profil (full_name dan username) dari tabel 'profiles'
+ * dan menggabungkannya dengan email dari Auth.
+ * @param {string} userId - ID user yang sedang login
+ * @param {string} userEmail - Email user yang sedang login (dari token/middleware)
+ */
+const getProfileDetails = async (userId, userEmail) => {
+    // 1. Ambil data profil dari tabel 'profiles'
+    const { data: profileData, error } = await supabase
+        .from('profiles')
+        .select('full_name, username')
+        .eq('id', userId)
+        .single();
+
+    if (error) {
+        // Log error dan lempar, termasuk jika profil tidak ditemukan
+        console.error('Error fetching profile details:', error.message);
+        throw new Error('Could not retrieve profile details.');
+    }
+    
+    // 2. Gabungkan data
+    return {
+        id: userId,
+        email: userEmail, // Gunakan email dari middleware/token
+        full_name: profileData.full_name,
+        username: profileData.username,
+    };
+};
+
+/**
+ * Mengupdate password user yang sedang login.
+ * PENTING: Supabase hanya mengizinkan pembaruan password melalui auth SDK
+ * dan hanya untuk user yang sedang login (dengan token).
+ * @param {string} newPassword - Password baru
+ * @param {string} accessToken - Token user yang sedang login (dari req.user.token)
+ */
+const updatePassword = async (newPassword, accessToken) => {
+    if (!newPassword || newPassword.length < 6) {
+        throw new Error("Password baru minimal 6 karakter.");
+    }
+    
+    // Panggil API Supabase Auth untuk mengupdate password
+    // Catatan: Ini membutuhkan user yang sedang login (melalui token di header)
+    // dan TIDAK memerlukan service_role key.
+    const { data, error } = await supabase.auth.api.updateUser(
+        accessToken, // Menggunakan token dari request
+        { password: newPassword }
+    );
+
+    if (error) {
+        // Supabase biasanya mengembalikan 400 jika password terlalu pendek, dll.
+        throw new Error(error.message); 
+    }
+    return data;
+};
+
 module.exports = {
     createlink,
     getLinksByUserId,
@@ -177,4 +278,7 @@ module.exports = {
     deleteLinkById,
     getPublicProfileWithLinks,
     trackClickAndGetUrl,
+    updateProfileDetails,
+    updatePassword,
+    getProfileDetails,
 }

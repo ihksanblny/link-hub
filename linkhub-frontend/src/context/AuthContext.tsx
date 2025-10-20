@@ -15,6 +15,7 @@ interface AuthContextType {
     login : (token : string) => void;
     logout : () => void;
     isAuthLoading : boolean;
+    refreshUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -23,6 +24,30 @@ export function AuthProvider({ children } : { children : ReactNode }) {
     const [user, setUser] = useState<User | null>(null);
     const [token, setToken] = useState<string | null>(null);
     const [isAuthLoading, setIsAuthLoading] = useState(true);
+
+    const refreshUser = async () => {
+        if (!token) return;
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+        
+        try {
+            // Asumsi: Endpoint ini mengembalikan data user lengkap untuk update state
+            const response = await fetch(`${apiUrl}/user/me`, { 
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const data = await response.json();
+
+            if (response.ok && data.data) {
+                // PENTING: Update state user global dengan data terbaru (misal: username, full_name)
+                // Asumsi: user.email dan user.id tetap sama dari token.
+                setUser(prevUser => ({ 
+                    ...prevUser, 
+                    ...data.data // Gabungkan data terbaru dari API ke state user yang ada
+                }));
+            }
+        } catch (error) {
+            console.error("Gagal merefresh data user:", error);
+        }
+    };
 
     useEffect(() => {
         const storedToken = localStorage.getItem('authToken');
@@ -81,7 +106,7 @@ export function AuthProvider({ children } : { children : ReactNode }) {
     };
 
     return (
-        <AuthContext.Provider value={{ user, token, login, logout, isAuthLoading }}>
+        <AuthContext.Provider value={{ user, token, login, logout, isAuthLoading, refreshUser }}>
             {children}
         </AuthContext.Provider>
     );

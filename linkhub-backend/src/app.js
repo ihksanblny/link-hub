@@ -6,6 +6,7 @@ const linkRoutes = require('./routes/link.routes');
 const profileRoutes = require('./routes/profile.routes');
 const errorHandler = require('./middleware/errorHandler');
 const redirectRoutes = require('./routes/redirect.routes');
+const userRoutes = require('./routes/user.route');
 
 //inisialisasi aplikasi express
 const app = express();
@@ -19,6 +20,7 @@ app.use(express.json());
 app.use('/auth', authRoutes);
 app.use('/links', linkRoutes);
 app.use('/profile', profileRoutes);
+app.use('/user', userRoutes);
 
 //middleware untuk menangani error
 app.use(errorHandler);
