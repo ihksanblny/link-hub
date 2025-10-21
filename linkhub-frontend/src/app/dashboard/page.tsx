@@ -51,9 +51,7 @@ export default function DashboardPage() {
     }
   }, [token, logout]); // Tambahkan logout sebagai dependency
 
-  // ------------------------------------------------------------------
   // --- FETCH DATA HANYA JIKA AUTHENTIKASI BERHASIL ---
-  // ------------------------------------------------------------------
   useEffect(() => {
     // Jalankan fetchLinks HANYA jika token dan user sudah diinisialisasi
     if (token && user) {
@@ -66,11 +64,7 @@ export default function DashboardPage() {
     return links.reduce((sum, link) => sum + (link.clicks || 0), 0);
   }, [links]);
 
-
-  // ------------------------------------------------------------------
   // --- KRUSIAL: LOGIC PENANGANAN LOADING DAN REDIRECT ---
-  // ------------------------------------------------------------------
-
   // 1. BLOKIR SEMUA RENDER SAAT CONTEXT SEDANG MEMUAT
   if (isAuthLoading) {
     return (
@@ -96,13 +90,11 @@ export default function DashboardPage() {
     return null; // Penting untuk menghentikan proses render
   }
   
-  
   // --- Handler functions (asumsi Anda memiliki ini) ---
   const handleOpenAddModal = () => setIsAddModalOpen(true);
   const handleOpenEditModal = (link: Link) => { setEditingLink(link); setIsEditModalOpen(true); };
   const handleCloseEditModal = () => { setEditingLink(null); setIsEditModalOpen(false); fetchLinks(); };
   const handleDelete = () => { /* Logika delete */ };
-
 
   return (
     <>

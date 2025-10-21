@@ -3,19 +3,28 @@
 import { createContext, useState, useContext, useEffect, ReactNode } from "react";
 import { jwtDecode } from "jwt-decode";
 
-//Definisikan tipe data untuk user dan context
+// ----------------------------------------------------------------------
+// 1. PERBAIKAN INTERFACE USER (Menambahkan data Profil sebagai Optional)
+// ----------------------------------------------------------------------
 interface User {
-    id : string;
-    email : string;
+    id: string;
+    email: string;
+    // Data Profil dari tabel 'profiles' (Optional karena tidak ada di JWT)
+    full_name?: string | null;
+    username?: string | null;
+    avatar_url?: string | null;
 }
 
 interface AuthContextType {
-    user : User | null;
-    token : string | null;
-    login : (token : string) => void;
-    logout : () => void;
-    isAuthLoading : boolean;
+    user: User | null;
+    token: string | null;
+    login: (token: string) => void;
+    logout: () => void;
+    isAuthLoading: boolean;
     refreshUser: () => Promise<void>;
+    // HAPUS avatar_url: string | null; karena sudah ada di user.avatar_url
+    // Jika Anda ingin properti ini di tingkat atas, Anda harus menambahkannya, 
+    // tetapi kita akan menggunakan user?.avatar_url
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -25,39 +34,52 @@ export function AuthProvider({ children } : { children : ReactNode }) {
     const [token, setToken] = useState<string | null>(null);
     const [isAuthLoading, setIsAuthLoading] = useState(true);
 
+    // ----------------------------------------------------------------------
+    // 2. LOGIC REFRESH USER (Digunakan untuk memuat full_name/avatar_url)
+    // ----------------------------------------------------------------------
     const refreshUser = async () => {
         if (!token) return;
         const apiUrl = process.env.NEXT_PUBLIC_API_URL;
         
         try {
-            // Asumsi: Endpoint ini mengembalikan data user lengkap untuk update state
             const response = await fetch(`${apiUrl}/user/me`, { 
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             const data = await response.json();
 
             if (response.ok && data.data) {
-                // PENTING: Update state user global dengan data terbaru (misal: username, full_name)
-                // Asumsi: user.email dan user.id tetap sama dari token.
-                setUser(prevUser => ({ 
-                    ...prevUser, 
-                    ...data.data // Gabungkan data terbaru dari API ke state user yang ada
-                }));
+                // Gunakan spread operator untuk menggabungkan data token yang sudah ada
+                // dengan data profil yang baru di-fetch (full_name, username, avatar_url)
+                setUser(prevUser => {
+                    // Cek jika prevUser null (harusnya tidak terjadi saat refresh)
+                    if (!prevUser) return null; 
+                    
+                    return { 
+                        ...prevUser, 
+                        // Gabungkan data profil baru:
+                        full_name: data.data.full_name,
+                        username: data.data.username,
+                        avatar_url: data.data.avatar_url,
+                        // ... fields lain dari data.data
+                    };
+                });
             }
         } catch (error) {
             console.error("Gagal merefresh data user:", error);
         }
     };
 
+
+    // ----------------------------------------------------------------------
+    // 3. LOGIC UTAMA: MEMUAT TOKEN DARI LOCALSTORAGE
+    // ----------------------------------------------------------------------
     useEffect(() => {
         const storedToken = localStorage.getItem('authToken');
         
-        // DEBUGGING: Cek apakah token ada
         console.log("AUTH DEBUG: Token found in localStorage:", !!storedToken); 
 
         if (storedToken) {
             try {
-                // Gunakan 'any' untuk mengakses claim standar seperti 'exp' (expiration)
                 const decoded = jwtDecode<any>(storedToken); 
                 
                 // Pengecekan Kedaluwarsa (Expiration Check)
@@ -65,35 +87,49 @@ export function AuthProvider({ children } : { children : ReactNode }) {
                 if (decoded.exp && decoded.exp < currentTime) {
                     console.error("AUTH DEBUG: Token EXPIRED! Clearing localStorage.");
                     localStorage.removeItem('authToken');
-                    // Tidak perlu set user/token karena akan di-clear
                 } else {
-                    // Token VALID
                     console.log("AUTH DEBUG: Token is VALID. Setting user:", decoded.email);
-                    setUser({ id: decoded.sub, email: decoded.email });
+                    
+                    // Inisialisasi User HANYA dengan data dari token (id, email)
+                    const initialUser: User = { id: decoded.sub, email: decoded.email };
+                    setUser(initialUser);
                     setToken(storedToken);
+                    
+                    // PENTING: Panggil refreshUser untuk memuat data profil lainnya
+                    // Kita memanggilnya di sini karena token sudah kita set.
+                    // Gunakan setTimeout kecil untuk menghindari race condition saat inisialisasi pertama.
+                    setTimeout(() => refreshUser(), 100); 
                 }
 
             } catch (error) {
-                // Token rusak/tidak valid (misalnya, formatnya salah)
-                console.error("AUTH DEBUG: Token decode FAILED (corrupt or malformed). Clearing localStorage.", error);
+                console.error("AUTH DEBUG: Token decode FAILED. Clearing localStorage.", error);
                 localStorage.removeItem('authToken');
             }
         }
         
-        // PENTING: Pindahkan ini ke dalam setTimeout untuk memastikan semua log di atas selesai, 
-        // meskipun biasanya tidak perlu, ini terkadang menyelesaikan masalah race condition di Next.js
+        // Finalisasi loading state
         setTimeout(() => {
-             setIsAuthLoading(false);
-             console.log("AUTH DEBUG: isAuthLoading set to FALSE.");
-        }, 50); // Tambahkan delay sangat singkat
+            setIsAuthLoading(false);
+            console.log("AUTH DEBUG: isAuthLoading set to FALSE.");
+        }, 150); // Tambahkan sedikit delay untuk memastikan semua logic di atas berjalan
     }, []);
 
+
+    // ----------------------------------------------------------------------
+    // 4. LOGIC LOGIN DAN LOGOUT
+    // ----------------------------------------------------------------------
     const login = (newToken : string) => {
         try {
-            const decoded = jwtDecode<User & { sub : string }>(newToken);
-            setUser({ id : decoded.sub, email : decoded.email });
+            const decoded = jwtDecode<any>(newToken);
+            
+            const initialUser: User = { id: decoded.sub, email: decoded.email };
+            setUser(initialUser);
             setToken(newToken);
             localStorage.setItem('authToken', newToken);
+            
+            // Panggil refreshUser setelah login untuk memuat full_name/username/avatar_url
+            setTimeout(() => refreshUser(), 100);
+
         } catch (error) {
             console.error("Invalid token");
         }

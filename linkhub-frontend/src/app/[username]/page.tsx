@@ -13,6 +13,7 @@ interface ProfileData {
     short_code: string; // <-- Diperlukan untuk membuat URL redirect
     clicks: number;
   }[];
+  avatar_url: string | null;
 }
 
 // Fungsi untuk mengambil data dari backend (TIDAK BERUBAH)
@@ -53,7 +54,7 @@ export default async function ProfilePage({ params }: { params: { username: stri
           
           <header className="text-center space-y-4 mb-8">
             <Avatar className="w-24 h-24 mx-auto border-4 border-white/20 shadow-lg">
-              <AvatarImage src={`https://avatar.vercel.sh/${profileData.username}.png`} alt={profileData.username} />
+              <AvatarImage src={profileData.avatar_url || undefined} alt={profileData.username} />
               <AvatarFallback>{profileData.username.substring(0, 2).toUpperCase()}</AvatarFallback>
             </Avatar>
             <div>

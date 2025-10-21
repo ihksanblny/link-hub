@@ -18,6 +18,7 @@ export default function AvatarUpdateForm({ userId, token, onProfileUpdate }: Ava
     const [isLoading, setIsLoading] = useState(false);
     const [isSuccess, setIsSuccess] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
     // Fungsi untuk menampilkan preview dan menyimpan file
     const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -36,31 +37,41 @@ export default function AvatarUpdateForm({ userId, token, onProfileUpdate }: Ava
     // Handler untuk Submit (Placeholder Upload Logic)
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!selectedFile || !token || !userId) {
-            setErrorMessage('Silakan pilih file gambar.');
-            return;
-        }
+        if (!selectedFile || !token || !userId) { /* ... */ return; }
 
         setIsLoading(true);
         setIsSuccess(false);
         setErrorMessage('');
-
-        // --- PLACEHOLDER API CALL (SIMULASI UPLOAD) ---
+        
         try {
-            console.log("Simulating file upload to Supabase Storage and database update...");
-            await new Promise(resolve => setTimeout(resolve, 2500)); // Simulasikan latency 2.5s
+            // 1. Buat FormData
+            const formData = new FormData();
+            // PENTING: Nama field 'avatar' harus cocok dengan nama field Multer di backend (upload.single('avatar'))
+            formData.append('avatar', selectedFile); 
 
-            // *Logic Sesungguhnya* akan melibatkan FormData dan fetch ke:
-            // 1. POST /api/storage/upload (untuk menyimpan file dan mendapatkan URL)
-            // 2. PATCH /api/user/details (untuk menyimpan URL avatar di tabel profiles)
+            // 2. Panggil API Upload
+            const response = await fetch(`${apiUrl}/user/avatar`, { 
+                method: 'POST',
+                // PENTING: JANGAN SET Content-Type: browser akan menanganinya untuk FormData
+                headers: {
+                    'Authorization': `Bearer ${token}`, 
+                },
+                body: formData,
+            });
             
-            // Logika simulasi berhasil
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.message || 'Upload gagal.');
+            }
+            
+            // Logika sukses
             setIsSuccess(true);
             onProfileUpdate(); // Panggil refresh global
             setTimeout(() => setIsSuccess(false), 3000);
             
-        } catch (error) {
-            setErrorMessage('Gagal mengunggah avatar. Coba lagi.');
+        } catch (error: any) {
+            setErrorMessage(error.message);
         } finally {
             setIsLoading(false);
         }

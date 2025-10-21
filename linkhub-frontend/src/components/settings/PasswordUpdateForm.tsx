@@ -27,7 +27,7 @@ export default function PasswordUpdateForm({ token }: { token: string | null }) 
                 throw new Error("Password baru minimal 6 karakter.");
             }
 
-            const response = await fetch(`${apiUrl}/api/user/password`, { // <--- ENDPOINT BACKEND BARU
+            const response = await fetch(`${apiUrl}/user/password`, { // <--- ENDPOINT BACKEND BARU
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',

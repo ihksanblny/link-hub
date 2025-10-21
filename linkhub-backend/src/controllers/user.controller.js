@@ -1,4 +1,5 @@
 const userService = require('../services/link.service'); // Atau user.service jika dipisah
+const { Storage } = require('@supabase/storage-js');
 
 const getProfileDetails = async (req, res, next) => {
     try {
@@ -55,8 +56,37 @@ const changePassword = async (req, res, next) => {
     }
 };
 
+// src/controllers/user.controller.js
+
+const uploadAvatar = async (req, res, next) => {
+    try {
+        const userId = req.user.id;
+        
+        // --- PERBAIKAN: Check req.file secara eksplisit (Ini yang memicu 400) ---
+        if (!req.file) {
+            // Log ke console backend untuk debugging
+            console.error("ERROR 400: Multer failed to find file named 'avatar'. Check frontend FormData field name."); 
+            // Kirim 400 Bad Request
+            return res.status(400).json({ message: "File upload required (field name 'avatar' is missing or file is too large)." });
+        }
+        
+        // Lanjutkan hanya jika req.file ada
+        const newAvatarUrl = await userService.uploadAndSetAvatar(userId, req.file, req.token); // Asumsi req.token ada
+
+        return res.status(200).json({ 
+            message: "Avatar updated successfully", 
+            data: { avatar_url: newAvatarUrl } 
+        });
+
+    } catch (error) {
+        // ... (Error handling)
+        next(error);
+    }
+};
+
 module.exports = {
     updateDetails,
     changePassword,
     getProfileDetails,
+    uploadAvatar,
 };

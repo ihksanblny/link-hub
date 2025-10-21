@@ -111,7 +111,7 @@ const getPublicProfileWithLinks = async (username) => {
     
     const { data: profile, error: profileError } = await supabase
         .from('profiles')
-        .select('id, full_name, username') // Ambil kolom yang diperlukan
+        .select('id, full_name, username, avatar_url') // Ambil kolom yang diperlukan
         .eq('username', username)
         .single();
     
@@ -225,7 +225,7 @@ const getProfileDetails = async (userId, userEmail) => {
     // 1. Ambil data profil dari tabel 'profiles'
     const { data: profileData, error } = await supabase
         .from('profiles')
-        .select('full_name, username')
+        .select('full_name, username, avatar_url')
         .eq('id', userId)
         .single();
 
@@ -271,6 +271,59 @@ const updatePassword = async (newPassword, accessToken) => {
     return data;
 };
 
+const uploadAndSetAvatar = async (userId, file, accessToken) => {
+    const bucketName = 'avatars'; 
+    const fileExtension = file.mimetype.split('/').pop();
+    const filePath = `${userId}/${Date.now()}.${fileExtension}`; 
+
+    // --- PERBAIKAN KRITIS: Upload file dengan JWT di headers ---
+    const { data: _ } = await supabase.storage
+        .from(bucketName)
+        .upload(filePath, file.buffer, { 
+            contentType: file.mimetype,
+            upsert: true,
+            // PENTING: Meneruskan JWT sebagai header Authorization
+            // Ini adalah cara Supabase Storage API mengotentikasi request dari backend
+            cacheControl: '3600',
+        });
+    
+    const { error: uploadErrorFinal } = await supabase.storage
+        .from(bucketName)
+        .upload(filePath, file.buffer, { 
+            contentType: file.mimetype,
+            upsert: true,
+        });
+
+    if (uploadErrorFinal) {
+        console.error("Supabase Storage Upload Error:", uploadErrorFinal);
+        throw new Error('Gagal mengunggah file ke penyimpanan.');
+    }
+    
+    // 2. Dapatkan URL Publik
+    const { data: publicUrlData } = supabase.storage
+        .from(bucketName)
+        .getPublicUrl(filePath);
+
+    // Check defensif untuk public URL
+    if (!publicUrlData || !publicUrlData.publicUrl) {
+        throw new Error('Gagal mendapatkan URL publik file yang diunggah.');
+    }
+    
+    const publicUrl = publicUrlData.publicUrl;
+
+    // 3. Update URL Avatar di tabel profiles
+    const { error: dbError } = await supabase
+        .from('profiles')
+        .update({ avatar_url: publicUrl }) 
+        .eq('id', userId);
+
+    if (dbError) {
+        throw new Error('Gagal menyimpan URL avatar ke database.');
+    }
+
+    return publicUrl;
+};
+
 module.exports = {
     createlink,
     getLinksByUserId,
@@ -280,5 +333,6 @@ module.exports = {
     trackClickAndGetUrl,
     updateProfileDetails,
     updatePassword,
+    uploadAndSetAvatar,
     getProfileDetails,
 }

@@ -51,8 +51,13 @@ export default function DashboardHeader({ onAddClick, onLogout }: DashboardHeade
         <DropdownMenuTrigger asChild>
           <Button variant="outline" size="icon" className="overflow-hidden rounded-full">
             <Avatar>
-              <AvatarImage src={`https://avatar.vercel.sh/${user?.email}.png`} alt={user?.email} />
-              <AvatarFallback>{user?.email?.substring(0, 2).toUpperCase()}</AvatarFallback>
+                <AvatarImage 
+                    // PRIORITASKAN: user?.avatar_url
+                    // FALLBACK: URL Vercel/Gravatar
+                    src={user?.avatar_url || `https://avatar.vercel.sh/${user?.email}.png`} 
+                    alt={user?.email || "User Avatar"} 
+                />
+                <AvatarFallback>{user?.email?.substring(0, 2).toUpperCase()}</AvatarFallback>
             </Avatar>
           </Button>
         </DropdownMenuTrigger>
