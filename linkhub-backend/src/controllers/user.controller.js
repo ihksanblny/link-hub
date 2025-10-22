@@ -3,9 +3,13 @@ const { Storage } = require('@supabase/storage-js');
 
 const getProfileDetails = async (req, res, next) => {
     try {
-        // Asumsi: Anda memiliki fungsi di service untuk mendapatkan data profil user
         const userId = req.user.id;
-        const profileDetails = await userService.getProfileDetails(userId);
+        const userEmail = req.user.email; 
+        
+        // PERBAIKAN: Panggil fungsi dengan nama yang diekspor oleh service
+        // Ganti getProfileDetailsByUserId dengan getProfileDetails
+        const profileDetails = await userService.getProfileDetails(userId, userEmail); 
+        
         res.status(200).json({ message: "Profile retrieved successfully", data: profileDetails });
     } catch (error) {
         next(error);
@@ -15,12 +19,13 @@ const getProfileDetails = async (req, res, next) => {
 // Controller untuk mengupdate Full Name dan Username
 const updateDetails = async (req, res, next) => {
     try {
-        const { username, full_name } = req.body;
+        const { username, full_name, avatar_url } = req.body;
         const userId = req.user.id; // Diambil dari middleware token
 
         const updatedProfile = await userService.updateProfileDetails(userId, { 
             username, 
-            full_name 
+            full_name,
+            avatar_url 
         });
         
         res.status(200).json({ 
@@ -39,20 +44,34 @@ const updateDetails = async (req, res, next) => {
 // Controller untuk mengubah password
 const changePassword = async (req, res, next) => {
     try {
-        // PENTING: Supabase updatePassword hanya membutuhkan new_password.
-        // Verifikasi password lama biasanya dilakukan di sisi client atau ditangani oleh Supabase.
-        const { new_password } = req.body; 
-        const accessToken = req.token; // Asumsi: Middleware menyimpan token di req.token
-
-        // Memanggil service update password
-        await userService.updatePassword(new_password, accessToken);
-
-        res.status(200).json({ 
-            message: "Password changed successfully. Please re-login." 
-        });
-    } catch (error) {
-        // Error Supabase (misal: password too weak)
-        return res.status(400).json({ message: error.message });
+        // Ambil data yang dikirim dari frontend
+        // old_password diambil, tetapi diabaikan karena service menggunakan Supabase Auth SDK
+        const { old_password, new_password } = req.body; 
+        
+        // Asumsi: Token sudah ditambahkan ke req.token oleh middleware protectRoute
+        const userToken = req.token; 
+        
+        // CRITICAL CHECK: Pastikan newPassword ada di body
+        if (!old_password || !new_password) {
+            // Kita tetap memerlukan old_password untuk UX/keamanan, meskipun service mengabaikannya.
+            return res.status(400).json({ message: "Password lama dan baru wajib diisi." });
+        }
+        
+        // 🟢 PERBAIKAN: Panggil service HANYA DENGAN new_password dan token
+        await userService.updatePassword(new_password, userToken); 
+        
+        // Jika sukses, Supabase akan menonaktifkan token lama.
+        res.status(200).json({ message: "Password changed successfully. Please re-login." });
+    }
+    catch (error) {
+        // Menangkap error validasi dari service (misal: password minimal)
+        if (error.message.includes("minimal") || error.message.includes("salah") || error.message.includes("Gagal")) {
+            return res.status(400).json({ message: error.message });
+        }
+        
+        // 🚨 Penting: Meneruskan error ke global handler jika bukan 400
+        console.error('GLOBAL ERROR during changePassword:', error);
+        next(error); 
     }
 };
 

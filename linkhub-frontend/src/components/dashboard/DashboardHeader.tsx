@@ -26,6 +26,8 @@ interface DashboardHeaderProps {
 export default function DashboardHeader({ onAddClick, onLogout }: DashboardHeaderProps) {
   const { user } = useAuth();
 
+  console.log("Header Avatar URL State:", user?.avatar_url);
+
   return (
     <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background/80 px-4 backdrop-blur-sm sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
       <Link href="/" className="font-bold text-xl tracking-wider mr-4">
@@ -52,12 +54,19 @@ export default function DashboardHeader({ onAddClick, onLogout }: DashboardHeade
           <Button variant="outline" size="icon" className="overflow-hidden rounded-full">
             <Avatar>
                 <AvatarImage 
-                    // PRIORITASKAN: user?.avatar_url
-                    // FALLBACK: URL Vercel/Gravatar
-                    src={user?.avatar_url || `https://avatar.vercel.sh/${user?.email}.png`} 
+                    src={
+                        user?.avatar_url 
+                            // 🟢 SOLUSI CACHE BUSTING: Tambahkan ?t=timestamp saat ini
+                            // Timestamp akan berubah setiap kali komponen di-render ulang
+                            // (seperti setelah login/logout), memaksa browser memuat ulang gambar.
+                            ? `${user.avatar_url}?t=${Date.now()}` 
+                            // Fallback Vercel/Gravatar (jika user?.avatar_url null)
+                            : (user?.email ? `https://avatar.vercel.sh/${user.email}.png` : undefined)
+                    } 
                     alt={user?.email || "User Avatar"} 
                 />
-                <AvatarFallback>{user?.email?.substring(0, 2).toUpperCase()}</AvatarFallback>
+                {/* 🟢 SOLUSI UNDEFINED FALLBACK: Gunakan default 'US' */}
+                <AvatarFallback>{user?.email?.substring(0, 2).toUpperCase() || 'US'}</AvatarFallback>
             </Avatar>
           </Button>
         </DropdownMenuTrigger>

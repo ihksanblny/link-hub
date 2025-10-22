@@ -1,5 +1,7 @@
 const supabase = require('../services/supabase.service');
+const { jwtDecode } = require('jwt-decode');
 const { nanoid } = require('nanoid');
+const bcrypt = require('bcryptjs');
 
 /**
  * Membuat link baru di database
@@ -222,25 +224,45 @@ const updateProfileDetails = async (userId, newData) => {
  * @param {string} userEmail - Email user yang sedang login (dari token/middleware)
  */
 const getProfileDetails = async (userId, userEmail) => {
+    
     // 1. Ambil data profil dari tabel 'profiles'
-    const { data: profileData, error } = await supabase
+    const { data: profileDataArray, error } = await supabase
         .from('profiles')
-        .select('full_name, username, avatar_url')
-        .eq('id', userId)
-        .single();
+        // select harus mengambil SEMUA kolom yang dibutuhkan
+        .select('full_name, username, avatar_url') 
+        .eq('id', userId);
+        // Hapus .single() jika Anda tidak yakin hanya ada 1 row, 
+        // karena Supabase bisa melempar 500/error jika kondisi single tidak terpenuhi.
 
     if (error) {
-        // Log error dan lempar, termasuk jika profil tidak ditemukan
-        console.error('Error fetching profile details:', error.message);
-        throw new Error('Could not retrieve profile details.');
+        // Jangan pernah biarkan error Supabase mentah keluar, tangkap.
+        console.error('Supabase Query Error:', error.message);
+        throw new Error('Database error when retrieving profile.');
+    }
+
+    // 2. Cek nol baris hasil (Jika user baru dan belum ada row di tabel profiles)
+    const profileData = profileDataArray && profileDataArray.length > 0 
+        ? profileDataArray[0] 
+        : null;
+
+    if (!profileData) {
+        // Jika profil tidak ditemukan, kembalikan objek dengan nilai default null
+        return {
+            id: userId,
+            email: userEmail,
+            full_name: null,
+            username: null,
+            avatar_url: null, // <-- Dipastikan selalu ada di respons
+        };
     }
     
-    // 2. Gabungkan data
+    // 3. Gabungkan data
     return {
         id: userId,
-        email: userEmail, // Gunakan email dari middleware/token
+        email: userEmail,
         full_name: profileData.full_name,
         username: profileData.username,
+        avatar_url: profileData.avatar_url,
     };
 };
 
@@ -252,22 +274,33 @@ const getProfileDetails = async (userId, userEmail) => {
  * @param {string} accessToken - Token user yang sedang login (dari req.user.token)
  */
 const updatePassword = async (newPassword, accessToken) => {
-    if (!newPassword || newPassword.length < 6) {
-        throw new Error("Password baru minimal 6 karakter.");
+    
+    // Pengecekan ini akan berhasil sekarang karena accessToken adalah string
+    if (typeof accessToken !== 'string' || newPassword.length < 6) {
+         throw new Error("Token tidak valid atau password minimal 6 karakter."); 
     }
     
-    // Panggil API Supabase Auth untuk mengupdate password
-    // Catatan: Ini membutuhkan user yang sedang login (melalui token di header)
-    // dan TIDAK memerlukan service_role key.
-    const { data, error } = await supabase.auth.api.updateUser(
-        accessToken, // Menggunakan token dari request
+    let userId;
+    try {
+        // 1. Dekode Token untuk mendapatkan User ID (sub)
+        const decodedToken = jwtDecode(accessToken);
+        userId = decodedToken.sub; 
+    } catch (e) {
+        throw new Error("Token tidak valid."); // Sekarang ini menangkap error decode yang jarang
+    }
+
+    // 2. Panggil Admin API untuk Pembaruan
+    const { data, error } = await supabase.auth.admin.updateUserById(
+        userId, 
         { password: newPassword }
     );
 
     if (error) {
-        // Supabase biasanya mengembalikan 400 jika password terlalu pendek, dll.
-        throw new Error(error.message); 
+        console.error("Supabase Admin Update Error:", error);
+        // Tangkap error Admin API
+        throw new Error(error.message || "Gagal memperbarui password melalui Admin API."); 
     }
+    
     return data;
 };
 

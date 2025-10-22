@@ -14,20 +14,25 @@ const protectRoute = async (req, res, next) => {
 
     try {
         // Verifikasi token ke Supabase
-        const {data: {user}, error} = await supabase.auth.getUser(token);
+        // Catatan: Anda menggunakan klien Service Role di sini.
+        const {data: {user}, error} = await supabase.auth.getUser(token); 
 
         // Jika token tidak valid, kirim respon 401 Unauthorized
         if (error) {
-            throw new Error(error.message);
+            // Supabase client error message di sini sering kali sudah mencakup pesan "Invalid JWT"
+            throw new Error(error.message); 
         }
 
-        // Jika token valid, simpan informasi user ke req.user dan lanjut ke middleware berikutnya
+        // Jika token valid, simpan informasi user ke req.user dan LAKUKAN INI:
         req.user = user;
+        // 🟢 PERBAIKAN KRITIS: Simpan token mentah (string) agar bisa diakses di controller
+        req.token = token; 
 
         // Lanjut ke middleware berikutnya
         next();
     }
     catch (error) {
+        // Jika token kadaluarsa atau error lainnya dari Supabase
         res.status(401).json({message : 'Not authorized, token failed' });
     }
 };

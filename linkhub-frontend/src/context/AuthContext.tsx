@@ -1,7 +1,8 @@
 'use client';
 
-import { createContext, useState, useContext, useEffect, ReactNode } from "react";
-import { jwtDecode } from "jwt-decode";
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
+import { jwtDecode } from 'jwt-decode';
 
 // ----------------------------------------------------------------------
 // 1. PERBAIKAN INTERFACE USER (Menambahkan data Profil sebagai Optional)
@@ -29,50 +30,99 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export function AuthProvider({ children } : { children : ReactNode }) {
+export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
+    const router = useRouter();
     const [user, setUser] = useState<User | null>(null);
     const [token, setToken] = useState<string | null>(null);
     const [isAuthLoading, setIsAuthLoading] = useState(true);
 
-    // ----------------------------------------------------------------------
-    // 2. LOGIC REFRESH USER (Digunakan untuk memuat full_name/avatar_url)
-    // ----------------------------------------------------------------------
-    const refreshUser = async () => {
-        if (!token) return;
+    // --- 1. FUNGSI UTAMA: refreshUser ---
+    const refreshUser = useCallback(async () => {
+        // 🟢 PERBAIKAN: Gunakan token dari closure useCallback
+        // Karena kita akan memicu fungsi ini melalui token dependency, 
+        // token di sini sudah terjamin nilai terbarunya.
+        if (!token) return; 
+
         const apiUrl = process.env.NEXT_PUBLIC_API_URL;
         
+        // 🟢 PERBAIKAN FINAL: Ganti endpoint ke /user (sesuai klarifikasi)
+        const endpoint = `${apiUrl}/user/me`; 
+        
+        console.log("DEBUG FULL ENDPOINT (Target User Detail):", endpoint);
+        
         try {
-            const response = await fetch(`${apiUrl}/user/me`, { 
-                headers: { 'Authorization': `Bearer ${token}` }
+            const response = await fetch(endpoint, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json' 
+                }
             });
-            const data = await response.json();
 
-            if (response.ok && data.data) {
-                // Gunakan spread operator untuk menggabungkan data token yang sudah ada
-                // dengan data profil yang baru di-fetch (full_name, username, avatar_url)
-                setUser(prevUser => {
-                    // Cek jika prevUser null (harusnya tidak terjadi saat refresh)
-                    if (!prevUser) return null; 
-                    
-                    return { 
-                        ...prevUser, 
-                        // Gabungkan data profil baru:
-                        full_name: data.data.full_name,
-                        username: data.data.username,
-                        avatar_url: data.data.avatar_url,
-                        // ... fields lain dari data.data
-                    };
-                });
+            if (response.status === 401) {
+                // Token invalid/expired di tengah sesi
+                logout();
+                return;
             }
+
+            if (!response.ok) throw new Error("Gagal mengambil profil.");
+
+            const data = await response.json();
+            
+            // 🟢 UPDATE STATE: Pastikan semua data profil baru ditambahkan
+            setUser((currentUser) => ({
+                // Jaga agar data lain yang sudah ada di state tetap ada
+                ...currentUser, 
+                // Tumpuk dengan data terbaru dari API
+                ...data.data, 
+            }));
+
         } catch (error) {
-            console.error("Gagal merefresh data user:", error);
+            console.error("Refresh user error:", error);
+            // Jika ada error fetch, paksa logout (jika perlu)
+            // logout();
+        }
+    }, [token]); // Dependency array: Hanya refresh saat token berubah
+
+    // --- 2. FUNGSI LOGOUT ---
+    const logout = useCallback(() => {
+        setUser(null);
+        setToken(null);
+        localStorage.removeItem('authToken');
+        // router.replace('/login'); // Redirect dilakukan di page.tsx
+    }, []);
+
+    // --- 3. FUNGSI LOGIN ---
+    const login = (newToken: string) => {
+        try {
+            const decoded = jwtDecode<any>(newToken);
+            
+            const initialUser: User = { id: decoded.sub, email: decoded.email };
+            
+            setUser(initialUser);
+            setToken(newToken);
+            localStorage.setItem('authToken', newToken);
+            
+            // 🔴 KESALAHAN LAMA DIHAPUS: Hapus panggilan refreshUser() di sini
+            // refreshUser(); // Ini menggunakan token yang lama (null)
+        } catch (error) {
+            console.error("Invalid token");
         }
     };
 
+    // --- 4. LIFECYCLE HOOKS ---
 
-    // ----------------------------------------------------------------------
-    // 3. LOGIC UTAMA: MEMUAT TOKEN DARI LOCALSTORAGE
-    // ----------------------------------------------------------------------
+    // 🟢 PERBAIKAN KRUSIAL A: useEffect baru untuk memicu refreshUser secara AMAN
+    // Ini adalah SOLUSI untuk masalah Stale Closure. 
+    // Setiap kali 'token' berubah (setelah login atau initial load), fungsi ini akan dipanggil
+    // menggunakan fungsi 'refreshUser' yang ter-memoize dengan nilai 'token' yang BARU.
+    useEffect(() => {
+        if (token) {
+            console.log("AUTH DEBUG: Token terdeteksi berubah. Memicu refreshUser.");
+            refreshUser();
+        }
+    }, [token, refreshUser]); // refreshUser ditambahkan karena dia adalah dependency
+
+    // 🟢 PERBAIKAN KRUSIAL B: useEffect untuk Initial Load (dari localStorage)
     useEffect(() => {
         const storedToken = localStorage.getItem('authToken');
         
@@ -85,73 +135,43 @@ export function AuthProvider({ children } : { children : ReactNode }) {
                 // Pengecekan Kedaluwarsa (Expiration Check)
                 const currentTime = Date.now() / 1000;
                 if (decoded.exp && decoded.exp < currentTime) {
-                    console.error("AUTH DEBUG: Token EXPIRED! Clearing localStorage.");
-                    localStorage.removeItem('authToken');
+                    console.log("AUTH DEBUG: Token is expired. Logging out.");
+                    logout();
                 } else {
                     console.log("AUTH DEBUG: Token is VALID. Setting user:", decoded.email);
                     
-                    // Inisialisasi User HANYA dengan data dari token (id, email)
                     const initialUser: User = { id: decoded.sub, email: decoded.email };
                     setUser(initialUser);
                     setToken(storedToken);
                     
-                    // PENTING: Panggil refreshUser untuk memuat data profil lainnya
-                    // Kita memanggilnya di sini karena token sudah kita set.
-                    // Gunakan setTimeout kecil untuk menghindari race condition saat inisialisasi pertama.
-                    setTimeout(() => refreshUser(), 100); 
+                    // 🔴 KESALAHAN LAMA DIHAPUS: Hapus panggilan refreshUser() di sini
+                    // refreshUser(); // Ini menggunakan token yang lama (null)
+                    // Panggilan kini ditangani oleh useEffect di atas ([token])
                 }
 
             } catch (error) {
-                console.error("AUTH DEBUG: Token decode FAILED. Clearing localStorage.", error);
-                localStorage.removeItem('authToken');
+                console.error("AUTH ERROR: Token decode failed.", error);
+                logout();
             }
         }
         
-        // Finalisasi loading state
-        setTimeout(() => {
-            setIsAuthLoading(false);
-            console.log("AUTH DEBUG: isAuthLoading set to FALSE.");
-        }, 150); // Tambahkan sedikit delay untuk memastikan semua logic di atas berjalan
-    }, []);
+        setIsAuthLoading(false);
+        console.log("AUTH DEBUG: isAuthLoading set to FALSE.");
+    }, [logout]); // logout sebagai dependency (dijamin stabil oleh useCallback)
 
-
-    // ----------------------------------------------------------------------
-    // 4. LOGIC LOGIN DAN LOGOUT
-    // ----------------------------------------------------------------------
-    const login = (newToken : string) => {
-        try {
-            const decoded = jwtDecode<any>(newToken);
-            
-            const initialUser: User = { id: decoded.sub, email: decoded.email };
-            setUser(initialUser);
-            setToken(newToken);
-            localStorage.setItem('authToken', newToken);
-            
-            // Panggil refreshUser setelah login untuk memuat full_name/username/avatar_url
-            setTimeout(() => refreshUser(), 100);
-
-        } catch (error) {
-            console.error("Invalid token");
-        }
-    };
-
-    const logout = () => {
-        setUser(null);
-        setToken(null);
-        localStorage.removeItem('authToken');
-    };
+    // ... (return context value tetap sama)
 
     return (
-        <AuthContext.Provider value={{ user, token, login, logout, isAuthLoading, refreshUser }}>
+        <AuthContext.Provider value={{ user, token, logout, login, isAuthLoading, refreshUser }}>
             {children}
         </AuthContext.Provider>
     );
-}
+};
 
-export function useAuth() {
+export const useAuth = () => {
     const context = useContext(AuthContext);
-    if (context === undefined) {
-        throw new Error ('useAuth must be used within an AuthProvider');
+    if (!context) {
+        throw new Error('useAuth must be used within an AuthProvider');
     }
     return context;
-}
+};

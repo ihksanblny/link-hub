@@ -6,8 +6,7 @@ const supabase = require('../services/supabase.service');
  * @param {string} newUsername - Username baru yang diinginkan.
  */
 const updateUsername = async (userId, newUsername) => {
-  console.log(`[Service] Mencoba update di DB. UserID: ${userId}, New Username: ${newUsername}`);
-
+  
   const { data, error } = await supabase
     .from('profiles')
     .update({ username: newUsername }) // Data yang akan diubah

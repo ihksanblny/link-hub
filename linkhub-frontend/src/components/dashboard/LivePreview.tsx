@@ -25,8 +25,20 @@ export default function LivePreview({ links }: LivePreviewProps) {
           {/* Konten di dalam layar ponsel */}
           <div className="text-center space-y-3 pt-6">
              <Avatar className="w-16 h-16 mx-auto border-2 border-white/20">
-              <AvatarImage src={`https://avatar.vercel.sh/${user?.email}.png`} />
-              <AvatarFallback>{user?.email?.substring(0, 2).toUpperCase()}</AvatarFallback>
+              <AvatarImage 
+                    src={
+                        user?.avatar_url 
+                            // 🟢 SOLUSI CACHE BUSTING: Tambahkan ?t=timestamp saat ini
+                            // Timestamp akan berubah setiap kali komponen di-render ulang
+                            // (seperti setelah login/logout), memaksa browser memuat ulang gambar.
+                            ? `${user.avatar_url}?t=${Date.now()}` 
+                            // Fallback Vercel/Gravatar (jika user?.avatar_url null)
+                            : (user?.email ? `https://avatar.vercel.sh/${user.email}.png` : undefined)
+                    } 
+                    alt={user?.email || "User Avatar"} 
+                />
+                {/* 🟢 SOLUSI UNDEFINED FALLBACK: Gunakan default 'US' */}
+                <AvatarFallback>{user?.email?.substring(0, 2).toUpperCase() || 'US'}</AvatarFallback>
             </Avatar>
             <p className="font-semibold text-foreground text-sm">@{user?.email?.split('@')[0]}</p>
             
