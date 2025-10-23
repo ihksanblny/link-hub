@@ -21,4 +21,7 @@ router.patch('/password', protectRoute, userController.changePassword);
 
 router.post('/avatar', protectRoute, upload.single('avatar'), userController.uploadAvatar);
 
+//4. Hapus Akun
+router.delete('/', protectRoute, userController.deleteAccount);
+
 module.exports = router;

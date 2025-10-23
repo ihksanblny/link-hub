@@ -357,6 +357,46 @@ const uploadAndSetAvatar = async (userId, file, accessToken) => {
     return publicUrl;
 };
 
+/**
+ * @param { string } accessToken - Token user yang sedang login
+ */
+
+const deleteUserAndData = async (accessToken) => {
+    const decodeToken = jwtDecode(accessToken);
+    const userId = decodeToken.sub;
+
+    // Hapus Data Terkait (Links dan Profile)
+    // Hapus semua link milik user
+    const { error: linksError } = await supabase
+        .from('links')
+        .delete()
+        .eq('user_id', userId);
+
+    if (linksError) {
+        console.error("Supabase Error menghapus link: ", linksError);
+        throw new Error ("Gagal menghapus link.");
+    }
+
+    const { error: profileError } = await supabase
+        .from('profiles')
+        .delete()
+        .eq('id', userId);
+    
+    if (profileError) {
+        console.error("Supabase Error menghapus profil: ", profileError);
+        throw new Error ("Gagal menghapus profil.");
+    }
+
+    const {error: authError} = await supabase.auth.admin.deleteUser(userId);
+
+    if (authError) {
+        console.error("Supabase Error menghapus user: ", authError);
+        throw new Error("Gagal menghapus user");
+    }
+
+    return true;
+}
+
 module.exports = {
     createlink,
     getLinksByUserId,
@@ -368,4 +408,5 @@ module.exports = {
     updatePassword,
     uploadAndSetAvatar,
     getProfileDetails,
+    deleteUserAndData
 }

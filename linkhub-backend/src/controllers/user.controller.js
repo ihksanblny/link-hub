@@ -103,9 +103,27 @@ const uploadAvatar = async (req, res, next) => {
     }
 };
 
+const deleteAccount = async (req, res, next) => {
+    try {
+        const accessToken = req.token; // Token dari auth.middleware
+
+        // Panggil service untuk menghapus data dan user
+        await userService.deleteUserAndData(accessToken); 
+        
+        // Kirim respon sukses
+        res.status(200).json({ message: "Akun dan semua data berhasil dihapus secara permanen." });
+    }
+    catch (error) {
+        console.error('GLOBAL ERROR during deleteAccount:', error);
+        // Mengembalikan 500 jika gagal
+        next(error); 
+    }
+};
+
 module.exports = {
     updateDetails,
     changePassword,
     getProfileDetails,
     uploadAvatar,
+    deleteAccount
 };
