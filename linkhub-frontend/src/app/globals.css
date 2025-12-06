@@ -6,8 +6,10 @@
 @layer base {
   :root {
     /* --- PALET WARNA BARU "AURORA GLOW" --- */
-    --background: 224 71.4% 4.1%; /* Biru sangat gelap */
-    --foreground: 210 20% 98%;    /* Teks putih gading (lebih lembut) */
+    --background: 224 71.4% 4.1%;
+    /* Biru sangat gelap */
+    --foreground: 210 20% 98%;
+    /* Teks putih gading (lebih lembut) */
 
     /* Kartu dibuat sedikit lebih terang untuk kontras */
     --card: 224 71.4% 5.5%;
@@ -22,7 +24,7 @@
 
     --secondary: 224 71.4% 10%;
     --secondary-foreground: 210 20% 98%;
-    
+
     --muted: 224 71.4% 10%;
     --muted-foreground: 215 20.2% 65.1%;
 
@@ -32,10 +34,12 @@
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 20% 98%;
 
-    --border: 224 71.4% 10%; /* Border sedikit lebih terlihat */
+    --border: 224 71.4% 10%;
+    /* Border sedikit lebih terlihat */
     --input: 224 71.4% 10%;
-    --ring: 262.1 83.3% 57.8%; /* Cincin fokus mengikuti warna primary */
-    
+    --ring: 262.1 83.3% 57.8%;
+    /* Cincin fokus mengikuti warna primary */
+
     --radius: 0.75rem;
   }
 
@@ -66,11 +70,10 @@
   * {
     @apply border-border;
   }
+
   body {
     /* Gunakan warna background baru dan terapkan gradien */
-    @apply bg-[--background] text-foreground;
-    background: linear-gradient(135deg, hsl(var(--soft-gradient-start)) 0%, hsl(var(--soft-gradient-end)) 100%);
-    background-attachment: fixed;
+    @apply bg-background text-foreground overflow-x-hidden;
   }
 }
 
@@ -80,6 +83,7 @@
     background-size: 400% 400%;
     animation: gradient-move 15s ease infinite;
   }
+
   .animated-gradient-text {
     background: linear-gradient(-45deg, #f87171, #f472b6, #a78bfa, #3b82f6);
     background-size: 400% 400%;
@@ -89,13 +93,16 @@
     background-clip: text;
     text-fill-color: transparent;
   }
+
   @keyframes gradient-move {
     0% {
       background-position: 0% 50%;
     }
+
     50% {
       background-position: 100% 50%;
     }
+
     100% {
       background-position: 0% 50%;
     }
@@ -103,26 +110,27 @@
 }
 
 @keyframes blob {
-	0% {
-		transform: translate(0px, 0px) scale(1);
-	}
-	33% {
-		transform: translate(30px, -50px) scale(1.1);
-	}
-	66% {
-		transform: translate(-20px, 20px) scale(0.9);
-	}
-	100% {
-		transform: translate(0px, 0px) scale(1);
-	}
+  0% {
+    transform: translate(0px, 0px) scale(1);
+  }
+
+  33% {
+    transform: translate(30px, -50px) scale(1.1);
+  }
+
+  66% {
+    transform: translate(-20px, 20px) scale(0.9);
+  }
+
+  100% {
+    transform: translate(0px, 0px) scale(1);
+  }
 }
 
 .animate-blob {
-	animation: blob 7s infinite;
+  animation: blob 7s infinite;
 }
 
 .animation-delay-2000 {
-	animation-delay: 2s;
+  animation-delay: 2s;
 }
-
-
